@@ -10,6 +10,15 @@
 !.yarn/releases
 !.yarn/versions
 
+# IDE files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
 # testing
 /coverage
 
