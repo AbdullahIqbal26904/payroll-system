@@ -1,3 +1,4 @@
+// filepath: /Users/abdullahiqbal/Downloads/Payroll-Application/payroll-frontend/src/pages/dashboard/payroll/reports/[id].jsx
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSelector, useDispatch } from 'react-redux';
@@ -54,8 +55,6 @@ export default function PayrollReportDetails() {
       } catch (error) {
         console.error('Error downloading paystub:', error);
       }
-    }
-      document.body.removeChild(link);
     }
   };
 
@@ -252,7 +251,7 @@ export default function PayrollReportDetails() {
       )}
     </div>
   );
-
+}
 
 // Use the Dashboard layout for this page
 PayrollReportDetails.getLayout = function getLayout(page) {

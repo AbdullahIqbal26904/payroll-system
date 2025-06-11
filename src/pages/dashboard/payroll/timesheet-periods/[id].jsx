@@ -130,15 +130,15 @@ export default function TimesheetPeriodDetails() {
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Total Hours</span>
-                <span className="text-sm font-medium text-gray-900">{currentTimesheetPeriod.totalHours.toFixed(2)} hrs</span>
+                <span className="text-sm font-medium text-gray-900">{currentTimesheetPeriod.totalHours} hrs</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Regular Hours</span>
-                <span className="text-sm font-medium text-gray-900">{currentTimesheetPeriod.regularHours.toFixed(2)} hrs</span>
+                <span className="text-sm font-medium text-gray-900">{currentTimesheetPeriod.regularHours} hrs</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Overtime Hours</span>
-                <span className="text-sm font-medium text-gray-900">{currentTimesheetPeriod.overtimeHours.toFixed(2)} hrs</span>
+                <span className="text-sm font-medium text-gray-900">{currentTimesheetPeriod.overtimeHours} hrs</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Missing Punches</span>
