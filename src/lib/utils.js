@@ -1,4 +1,3 @@
-
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -94,4 +93,27 @@ export function debounce(fn, delay) {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => fn(...args), delay);
   };
+}
+
+/**
+ * Downloads a blob as a file
+ * Handles creating temporary URLs and cleanup after download
+ * 
+ * @param {Blob} blob - The file data as a Blob
+ * @param {string} filename - The filename to save as
+ */
+export function downloadBlob(blob, filename) {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  
+  // Clean up
+  setTimeout(() => {
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }, 100);
 }

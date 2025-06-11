@@ -1,295 +1,345 @@
 import { useState, useEffect } from 'react';
-import Head from 'next/head';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchEmployees } from '@/redux/slices/employeeSlice';
+import { calculatePayroll, fetchTimesheetPeriods, fetchTimesheetPeriodDetails } from '@/redux/slices/payrollSlice';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
-import { CurrencyDollarIcon, DocumentReportIcon } from '@heroicons/react/24/outline';
+import { formatDate } from '@/lib/utils';
+import { 
+  CurrencyDollarIcon, 
+  DocumentReportIcon,
+  CalendarIcon,
+  ClockIcon,
+  UserGroupIcon,
+  ArrowLeftIcon
+} from '@heroicons/react/24/outline';
+import { toast } from 'react-toastify';
 
 export default function CalculatePayroll() {
   const dispatch = useDispatch();
-  const { employees, loading } = useSelector((state) => state.employees);
+  const router = useRouter();
+  const { periodId } = router.query;
   
-  const [selectedEmployees, setSelectedEmployees] = useState([]);
-  const [payPeriod, setPayPeriod] = useState({
-    startDate: '',
-    endDate: ''
-  });
-  const [deductions, setDeductions] = useState({
-    tax: 15, // Default tax percentage
-    insurance: 5, // Default insurance percentage
-    otherDeductions: 0 // Default other deductions
+  const { 
+    timesheetPeriods, 
+    currentTimesheetPeriod, 
+    loading, 
+    error, 
+    success, 
+    message 
+  } = useSelector((state) => state.payroll);
+  
+  const [selectedPeriodId, setSelectedPeriodId] = useState('');
+  const [paymentInfo, setPaymentInfo] = useState({
+    payDate: new Date().toISOString().split('T')[0], // Today's date as default
+    paymentFrequency: 'Bi-Weekly' // Default payment frequency
   });
   
+  // Fetch timesheet periods on component mount
   useEffect(() => {
-    dispatch(fetchEmployees({ limit: 100 })); // Get up to 100 employees for payroll calculation
+    dispatch(fetchTimesheetPeriods());
   }, [dispatch]);
   
-  // Handle checkbox selection of employees
-  const handleEmployeeSelection = (e, employeeId) => {
-    if (e.target.checked) {
-      setSelectedEmployees([...selectedEmployees, employeeId]);
-    } else {
-      setSelectedEmployees(selectedEmployees.filter(id => id !== employeeId));
+  // Set selected period from URL if available
+  useEffect(() => {
+    if (periodId && !selectedPeriodId) {
+      setSelectedPeriodId(periodId);
+      dispatch(fetchTimesheetPeriodDetails(periodId));
+    }
+  }, [periodId, dispatch, selectedPeriodId]);
+  
+  // Show success message and redirect to payroll reports
+  useEffect(() => {
+    if (success && message) {
+      toast.success(message);
+      router.push('/dashboard/payroll/reports');
+    }
+    
+    if (error) {
+      toast.error(error);
+    }
+  }, [success, error, message, router]);
+  
+  // Handle timesheet period selection change
+  const handlePeriodChange = (e) => {
+    const id = e.target.value;
+    setSelectedPeriodId(id);
+    if (id) {
+      dispatch(fetchTimesheetPeriodDetails(id));
     }
   };
   
-  // Handle select all employees checkbox
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      const allIds = employees.map(emp => emp.id);
-      setSelectedEmployees(allIds);
-    } else {
-      setSelectedEmployees([]);
-    }
-  };
-  
-  // Handle date range changes
-  const handleDateChange = (e) => {
+  // Handle payment info changes
+  const handlePaymentInfoChange = (e) => {
     const { name, value } = e.target;
-    setPayPeriod({
-      ...payPeriod,
+    setPaymentInfo(prev => ({
+      ...prev,
       [name]: value
-    });
+    }));
   };
   
-  // Handle deduction changes
-  const handleDeductionChange = (e) => {
-    const { name, value } = e.target;
-    setDeductions({
-      ...deductions,
-      [name]: parseFloat(value) || 0
-    });
-  };
-  
-  // Calculate payroll function
-  const calculatePayroll = (e) => {
+  // Handle form submission
+  const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (selectedEmployees.length === 0) {
-      alert('Please select at least one employee');
+    if (!selectedPeriodId) {
+      toast.error('Please select a timesheet period');
       return;
     }
     
-    if (!payPeriod.startDate || !payPeriod.endDate) {
-      alert('Please set the pay period dates');
-      return;
-    }
+    const payrollData = {
+      periodId: selectedPeriodId,
+      payDate: paymentInfo.payDate,
+      paymentFrequency: paymentInfo.paymentFrequency
+    };
     
-    // In a real app, this would be an API call to calculate payroll
-    alert('Payroll calculation would be sent to the server here');
+    dispatch(calculatePayroll(payrollData));
   };
   
   return (
-    <>
-      <Head>
-        <title>Calculate Payroll | Payroll System</title>
-        <meta name="description" content="Calculate payroll for your employees" />
-      </Head>
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-6">
+        <Link
+          href="/dashboard/payroll/timesheet-periods"
+          className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800"
+        >
+          <ArrowLeftIcon className="mr-1 h-4 w-4" /> Back to Timesheet Periods
+        </Link>
+      </div>
       
-      <div className="py-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Calculate Payroll</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Generate payroll calculations for your employees
-          </p>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-900">Calculate Payroll</h1>
+        <p className="mt-2 text-sm text-gray-600">
+          Calculate payroll based on timesheet data with Antigua-specific deductions
+        </p>
+      </div>
+      
+      <div className="bg-white shadow-md rounded-lg p-6">
+        {/* Select Timesheet Period */}
+        <div className="mb-8">
+          <h2 className="text-lg font-medium text-gray-900 mb-4">
+            1. Select Timesheet Period
+          </h2>
+          
+          <div className="grid grid-cols-1 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Timesheet Period
+              </label>
+              <select
+                name="periodId"
+                value={selectedPeriodId}
+                onChange={handlePeriodChange}
+                className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">-- Select a Timesheet Period --</option>
+                {timesheetPeriods.filter(period => !period.payrollProcessed).map((period) => (
+                  <option key={period.id} value={period.id}>
+                    Period #{period.id}: {formatDate(period.startDate)} to {formatDate(period.endDate)}
+                  </option>
+                ))}
+              </select>
+              
+              {timesheetPeriods.length === 0 && (
+                <p className="mt-2 text-sm text-red-600">
+                  No timesheet periods available. Please upload a timesheet first.
+                </p>
+              )}
+              
+              {timesheetPeriods.filter(period => !period.payrollProcessed).length === 0 && timesheetPeriods.length > 0 && (
+                <p className="mt-2 text-sm text-yellow-600">
+                  All existing timesheet periods have already been processed.
+                </p>
+              )}
+            </div>
+          </div>
         </div>
         
-        <div className="bg-white shadow-sm rounded-lg overflow-hidden mb-6">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Pay Period</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
-                  Start Date <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="date"
-                  id="startDate"
-                  name="startDate"
-                  value={payPeriod.startDate}
-                  onChange={handleDateChange}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
-                  End Date <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="date"
-                  id="endDate"
-                  name="endDate"
-                  value={payPeriod.endDate}
-                  onChange={handleDateChange}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-          
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Deductions</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label htmlFor="tax" className="block text-sm font-medium text-gray-700">
-                  Tax Percentage (%)
-                </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
-                  <input
-                    type="number"
-                    id="tax"
-                    name="tax"
-                    min="0"
-                    step="0.01"
-                    value={deductions.tax}
-                    onChange={handleDeductionChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-              </div>
-              <div>
-                <label htmlFor="insurance" className="block text-sm font-medium text-gray-700">
-                  Insurance Percentage (%)
-                </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
-                  <input
-                    type="number"
-                    id="insurance"
-                    name="insurance"
-                    min="0"
-                    step="0.01"
-                    value={deductions.insurance}
-                    onChange={handleDeductionChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-              </div>
-              <div>
-                <label htmlFor="otherDeductions" className="block text-sm font-medium text-gray-700">
-                  Other Deductions (%)
-                </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
-                  <input
-                    type="number"
-                    id="otherDeductions"
-                    name="otherDeductions"
-                    min="0"
-                    step="0.01"
-                    value={deductions.otherDeductions}
-                    onChange={handleDeductionChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Select Employees</h2>
+        {/* Timesheet Period Preview */}
+        {currentTimesheetPeriod && (
+          <div className="mb-8 border-t border-gray-200 pt-6">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">
+              2. Timesheet Period Preview
+            </h2>
             
-            {loading ? (
-              <div className="flex justify-center items-center h-32">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-              </div>
-            ) : (
-              <>
-                <div className="mb-4">
-                  <label className="inline-flex items-center">
-                    <input
-                      type="checkbox"
-                      className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                      onChange={handleSelectAll}
-                      checked={selectedEmployees.length === employees?.length && employees?.length > 0}
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Select All</span>
-                  </label>
+            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 bg-white rounded-md shadow-sm">
+                  <div className="flex items-center">
+                    <CalendarIcon className="h-8 w-8 text-blue-500 mr-3" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Date Range</p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        {formatDate(currentTimesheetPeriod.startDate)} - {formatDate(currentTimesheetPeriod.endDate)}
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Select
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          ID
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Name
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Job Title
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Department
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Salary
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {employees?.map((employee) => (
-                        <tr key={employee.id}>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <input
-                              type="checkbox"
-                              className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                              checked={selectedEmployees.includes(employee.id)}
-                              onChange={(e) => handleEmployeeSelection(e, employee.id)}
-                            />
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {employee.id}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {employee.first_name} {employee.last_name}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {employee.job_title}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {employee.department}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            ${employee.salary_amount?.toLocaleString()}
-                          </td>
-                        </tr>
-                      ))}
-                      
-                      {employees?.length === 0 && (
-                        <tr>
-                          <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
-                            No employees found
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                <div className="p-4 bg-white rounded-md shadow-sm">
+                  <div className="flex items-center">
+                    <UserGroupIcon className="h-8 w-8 text-green-500 mr-3" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Employees</p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        {currentTimesheetPeriod.employeeCount} employees
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </>
+                
+                <div className="p-4 bg-white rounded-md shadow-sm">
+                  <div className="flex items-center">
+                    <ClockIcon className="h-8 w-8 text-purple-500 mr-3" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Total Hours</p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        {currentTimesheetPeriod.totalHours?.toFixed(2) || '0.00'} hours
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Employee Hours Table */}
+            {currentTimesheetPeriod.employees && currentTimesheetPeriod.employees.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Employee
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        ID
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Regular Hours
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Overtime Hours
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Total Hours
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {currentTimesheetPeriod.employees.map((employee) => (
+                      <tr key={employee.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900">
+                                {employee.name}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {employee.email}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {employee.employeeId}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {employee.regularHours?.toFixed(2) || '0.00'} hrs
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {employee.overtimeHours?.toFixed(2) || '0.00'} hrs
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {((employee.regularHours || 0) + (employee.overtimeHours || 0)).toFixed(2)} hrs
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
-          
-          <div className="px-6 py-4 bg-gray-50 flex justify-end">
-            <button
-              type="button"
-              onClick={calculatePayroll}
-              disabled={loading}
-              className={`flex items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                loading ? 'opacity-70 cursor-not-allowed' : ''
-              }`}
-            >
-              <CurrencyDollarIcon className="mr-2 h-5 w-5" />
-              Calculate Payroll
-            </button>
+        )}
+        
+        {/* Payment Information */}
+        {currentTimesheetPeriod && (
+          <div className="mb-8 border-t border-gray-200 pt-6">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">
+              3. Payment Information
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Pay Date
+                </label>
+                <input
+                  type="date"
+                  name="payDate"
+                  value={paymentInfo.payDate}
+                  onChange={handlePaymentInfoChange}
+                  className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Payment Frequency
+                </label>
+                <select
+                  name="paymentFrequency"
+                  value={paymentInfo.paymentFrequency}
+                  onChange={handlePaymentInfoChange}
+                  className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="Weekly">Weekly</option>
+                  <option value="Bi-Weekly">Bi-Weekly</option>
+                  <option value="Semi-Monthly">Semi-Monthly</option>
+                  <option value="Monthly">Monthly</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="bg-blue-50 rounded-md p-4 mt-6">
+              <h3 className="text-md font-medium text-blue-800 mb-2">Antigua-Specific Deductions</h3>
+              <p className="text-sm text-blue-700 mb-3">
+                The payroll system will automatically calculate the following deductions:
+              </p>
+              <ul className="text-sm text-blue-700 list-disc list-inside space-y-1">
+                <li>Social Security (7% employee, 9% employer, max $6,500)</li>
+                <li>Medical Benefits (3.5% standard, reduced rates for seniors)</li>
+                <li>Education Levy (2.5% or 5% based on salary thresholds)</li>
+              </ul>
+            </div>
           </div>
+        )}
+        
+        {/* Submit Button */}
+        <div className="border-t border-gray-200 pt-6 flex justify-end">
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!currentTimesheetPeriod || loading}
+            className="px-6 py-3 bg-green-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+          >
+            {loading ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing Payroll...
+              </>
+            ) : (
+              <>
+                <CurrencyDollarIcon className="h-5 w-5 mr-2" />
+                Calculate Payroll
+              </>
+            )}
+          </button>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

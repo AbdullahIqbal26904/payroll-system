@@ -36,7 +36,11 @@ const menuItems = [
     icon: CurrencyDollarIcon,
     submenu: [
       { name: 'Calculate Payroll', href: '/dashboard/payroll/calculate' },
-      { name: 'Payroll History', href: '/dashboard/payroll/history' },
+      { name: 'Payroll History', href: '/dashboard/payroll/reports' },
+      { name: 'Upload Timesheet', href: '/dashboard/payroll/upload-timesheet' },
+      { name: 'Timesheet Periods', href: '/dashboard/payroll/timesheet-periods' },
+      { name: 'Email Paystubs', href: '/dashboard/payroll/email-paystubs' },
+      { name: 'Payroll Settings', href: '/dashboard/payroll/settings' },
     ]
   },
   { name: 'Reports', href: '/dashboard/reports', icon: ChartBarIcon },

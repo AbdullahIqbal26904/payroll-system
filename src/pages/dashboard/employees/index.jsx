@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchEmployees } from '@/redux/slices/employeeSlice';
+import { fetchEmployees, deleteEmployee } from '@/redux/slices/employeeSlice';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { toast } from 'react-toastify';
 
 export default function EmployeesList() {
   const router = useRouter();
@@ -39,9 +40,17 @@ export default function EmployeesList() {
     router.push(`/dashboard/employees/edit/${id}`);
   };
   
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this employee?')) {
-      // Will implement delete functionality
+      try {
+        const resultAction = await dispatch(deleteEmployee(id));
+        if (deleteEmployee.fulfilled.match(resultAction)) {
+          toast.success('Employee deleted successfully!');
+        }
+      } catch (err) {
+        console.error('Failed to delete employee:', err);
+        toast.error('Failed to delete employee');
+      }
     }
   };
   

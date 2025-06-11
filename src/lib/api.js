@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5001/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 // Create an axios instance
 const api = axios.create({
@@ -67,6 +67,33 @@ export const employeesAPI = {
   getEmployee: (id) => api.get(`/employees/${id}`),
   updateEmployee: (id, employeeData) => api.put(`/employees/${id}`, employeeData),
   deleteEmployee: (id) => api.delete(`/employees/${id}`)
+};
+
+// Payroll API calls
+export const payrollAPI = {
+  // Timesheet endpoints
+  uploadTimesheet: (formData) => api.post('/payroll/upload-timesheet', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  }),
+  getTimesheetPeriods: () => api.get('/payroll/timesheet-periods'),
+  getTimesheetPeriod: (id) => api.get(`/payroll/timesheet-periods/${id}`),
+  
+  // Payroll calculation endpoints
+  calculatePayroll: (data) => api.post('/payroll/calculate', data),
+  
+  // Payroll reports endpoints
+  getPayrollReports: () => api.get('/payroll/reports'),
+  getPayrollReport: (id) => api.get(`/payroll/reports/${id}`),
+  
+  // Paystub endpoints
+  downloadPaystub: (payrollRunId, employeeId) => api.get(`/payroll/paystub/${payrollRunId}/${employeeId}`, { responseType: 'blob' }),
+  emailPaystubs: (data) => api.post('/payroll/email-paystubs', data),
+  
+  // Settings endpoints
+  getPayrollSettings: () => api.get('/payroll/settings'),
+  updatePayrollSettings: (settingsData) => api.put('/payroll/settings', settingsData)
 };
 
 // Health check

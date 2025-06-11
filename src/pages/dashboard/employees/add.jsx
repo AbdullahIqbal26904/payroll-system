@@ -41,9 +41,12 @@ export default function AddEmployee() {
       if (addEmployee.fulfilled.match(resultAction)) {
         toast.success('Employee added successfully!');
         router.push('/dashboard/employees');
+      } else if (addEmployee.rejected.match(resultAction)) {
+        toast.error(resultAction.payload || 'Failed to add employee');
       }
     } catch (err) {
       console.error('Failed to add employee:', err);
+      toast.error('Failed to add employee');
     }
   };
   
