@@ -34,7 +34,12 @@ export default function TimesheetPeriods() {
   const handleCalculatePayroll = (id) => {
     router.push(`/dashboard/payroll/calculate?periodId=${id}`);
   };
-  
+  const print_timesheet_periods = () => {
+    console.log(timesheetPeriods[0]);
+    const date = new Date(timesheetPeriods[0].period_end);
+    const date2 = new Date(timesheetPeriods[0].period_start);
+    console.log(date,date2)
+  }
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
@@ -53,7 +58,10 @@ export default function TimesheetPeriods() {
           </Link>
         </div>
       </div>
-      
+      <button onClick={print_timesheet_periods} type="button" className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+        Print tIME SHEET DATA
+        </button>
+
       {loading ? (
         <div className="flex justify-center py-12">
           <svg className="animate-spin -ml-1 mr-3 h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -117,7 +125,7 @@ export default function TimesheetPeriods() {
                     <div className="flex items-center">
                       <CalendarIcon className="mr-2 h-5 w-5 text-gray-400" />
                       <span className="text-sm text-gray-500">
-                        {formatDate(period.startDate)} - {formatDate(period.endDate)}
+                        {formatDate(period.period_start)} - {formatDate(period.period_end)}
                       </span>
                     </div>
                   </td>
@@ -135,7 +143,7 @@ export default function TimesheetPeriods() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatDate(period.createdAt)}
+                    {formatDate(period.created_at)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button

@@ -19,12 +19,35 @@ export default function PayrollReports() {
   // Format date function
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    }).format(date);
+    
+    try {
+      // Handle ISO format dates (YYYY-MM-DD)
+      if (typeof dateString === 'string' && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        // Split the date string into components
+        const [year, month, day] = dateString.split('-').map(Number);
+        // Create date object (month is 0-indexed in JavaScript Date)
+        const date = new Date(year, month - 1, day);
+        return new Intl.DateTimeFormat('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        }).format(date);
+      }
+      
+      // For other date formats
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return 'Invalid Date';
+      }
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      }).format(date);
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return 'Invalid Date';
+    }
   };
 
   // Format currency function
