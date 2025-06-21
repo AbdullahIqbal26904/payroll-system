@@ -6,7 +6,7 @@ import { fetchPayrollReportDetails } from '@/redux/slices/payrollSlice';
 import Link from 'next/link';
 import { ArrowLeftIcon, DocumentArrowDownIcon, EnvelopeIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
-import { downloadPaystub } from './PaystubDownloader';
+import { downloadPaystub } from '@/lib/PaystubDownloader';
 
 export default function PayrollReportDetails() {
   const dispatch = useDispatch();
