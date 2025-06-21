@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { authAPI } from '@/lib/api';
-import jwt_decode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
 
 // Async thunks
