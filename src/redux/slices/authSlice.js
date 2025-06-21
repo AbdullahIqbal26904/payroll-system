@@ -51,7 +51,7 @@ export const checkTokenValidity = () => {
   if (!token) return false;
   
   try {
-    const decodedToken = jwt_decode(token);
+    const decodedToken = jwtDecode(token); // Changed from jwt_decode to jwtDecode
     const currentTime = Date.now() / 1000;
     
     return decodedToken.exp > currentTime;
