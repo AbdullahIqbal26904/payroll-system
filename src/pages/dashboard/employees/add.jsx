@@ -23,14 +23,20 @@ export default function AddEmployee() {
     job_title: '',
     department: '',
     salary_amount: '',
-    payment_frequency: 'Monthly'
+    payment_frequency: 'Monthly',
+    // New fields
+    hourly_rate: '',
+    is_exempt_ss: false,
+    is_exempt_medical: false
   });
   
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'salary_amount' ? parseFloat(value) || '' : value
+      [name]: type === 'checkbox' ? checked : 
+              (name === 'salary_amount' || name === 'hourly_rate') ? parseFloat(value) || '' : 
+              value
     }));
   };
   
@@ -319,6 +325,76 @@ export default function AddEmployee() {
                     <option value="Bi-Weekly">Bi-weekly</option>
                     <option value="Monthly">Monthly</option>
                   </select>
+                </div>
+                
+                {/* Hourly Rate */}
+                <div>
+                  <label htmlFor="hourly_rate" className="block text-sm font-medium text-gray-700">
+                    Hourly Rate
+                  </label>
+                  <div className="mt-1 relative rounded-md shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span className="text-gray-500 sm:text-sm">$</span>
+                    </div>
+                    <input
+                      type="number"
+                      name="hourly_rate"
+                      id="hourly_rate"
+                      min="0"
+                      step="0.01"
+                      value={formData.hourly_rate}
+                      onChange={handleChange}
+                      className="mt-1 block w-full pl-7 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">Leave blank if salaried employee</p>
+                </div>
+                
+                {/* Exemption Status Section */}
+                <div className="md:col-span-2 mt-4">
+                  <h3 className="text-md font-medium text-gray-700 mb-2">Exemption Status</h3>
+                  
+                  <div className="space-y-4">
+                    {/* Social Security Exemption */}
+                    <div className="flex items-start">
+                      <div className="flex items-center h-5">
+                        <input
+                          id="is_exempt_ss"
+                          name="is_exempt_ss"
+                          type="checkbox"
+                          checked={formData.is_exempt_ss}
+                          onChange={handleChange}
+                          className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                        />
+                      </div>
+                      <div className="ml-3 text-sm">
+                        <label htmlFor="is_exempt_ss" className="font-medium text-gray-700">
+                          Exempt from Social Security
+                        </label>
+                        <p className="text-gray-500">Employee is exempt from Social Security contributions</p>
+                      </div>
+                    </div>
+                    
+                    {/* Medical Benefits Exemption */}
+                    <div className="flex items-start">
+                      <div className="flex items-center h-5">
+                        <input
+                          id="is_exempt_medical"
+                          name="is_exempt_medical"
+                          type="checkbox"
+                          checked={formData.is_exempt_medical}
+                          onChange={handleChange}
+                          className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                        />
+                      </div>
+                      <div className="ml-3 text-sm">
+                        <label htmlFor="is_exempt_medical" className="font-medium text-gray-700">
+                          Exempt from Medical Benefits
+                        </label>
+                        <p className="text-gray-500">Employee is exempt from Medical Benefits contributions</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

@@ -50,6 +50,7 @@ export default function CalculatePayroll() {
   
   // Show success message and redirect to payroll reports
   useEffect(() => {
+    console.log('first')
     if (success && message) {
       toast.success(message);
       router.push('/dashboard/payroll/reports');
@@ -203,7 +204,7 @@ export default function CalculatePayroll() {
             </div>
             
             {/* Employee Hours Table */}
-            {currentTimesheetPeriod.employees && currentTimesheetPeriod.employees.length > 0 && (
+            {currentTimesheetPeriod.payrollItems && currentTimesheetPeriod.payrollItems.length > 0 && (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -226,17 +227,17 @@ export default function CalculatePayroll() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {currentTimesheetPeriod.employees.map((employee) => (
-                      <tr key={employee.id} className="hover:bg-gray-50">
+                    {currentTimesheetPeriod.payrollItems.map((employee) => (
+                      <tr key={employee.employeeId} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="ml-4">
                               <div className="text-sm font-medium text-gray-900">
-                                {employee.name}
+                                {employee.employeeName}
                               </div>
-                              <div className="text-sm text-gray-500">
+                              {/* <div className="text-sm text-gray-500">
                                 {employee.email}
-                              </div>
+                              </div> */}
                             </div>
                           </div>
                         </td>
@@ -244,13 +245,13 @@ export default function CalculatePayroll() {
                           {employee.employeeId}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {employee.regularHours?.toFixed(2) || '0.00'} hrs
+                          {employee.hoursWorked?.toFixed(2) || '0.00'} hrs
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {employee.overtimeHours?.toFixed(2) || '0.00'} hrs
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {((employee.regularHours || 0) + (employee.overtimeHours || 0)).toFixed(2)} hrs
+                          {((employee.hoursWorked || 0) + (employee.overtimeHours || 0)).toFixed(2)} hrs
                         </td>
                       </tr>
                     ))}

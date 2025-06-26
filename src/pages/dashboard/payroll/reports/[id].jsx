@@ -16,6 +16,7 @@ export default function PayrollReportDetails() {
   
   // Fetch payroll report details
   useEffect(() => {
+    console.log(currentPayrollReport)
     if (id) {
       dispatch(fetchPayrollReportDetails(id));
     }
@@ -120,7 +121,7 @@ export default function PayrollReportDetails() {
                 Payroll Report #{currentPayrollReport.id}
               </h1>
               <p className="mt-2 text-sm text-gray-600">
-                Pay Date: {formatDate(currentPayrollReport.payDate)} | Period: {formatDate(currentPayrollReport.periodStartDate)} - {formatDate(currentPayrollReport.periodEndDate)}
+                Pay Date: {formatDate(currentPayrollReport.pay_date)} | Period: {formatDate(currentPayrollReport.period_start)} - {formatDate(currentPayrollReport.period_end)}
               </p>
             </div>
             <button
@@ -139,15 +140,15 @@ export default function PayrollReportDetails() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Total Employees</div>
-                <div className="text-xl font-semibold">{currentPayrollReport.employeeCount || 0}</div>
+                <div className="text-xl font-semibold">{currentPayrollReport.total_employees || 0}</div>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Total Gross</div>
-                <div className="text-xl font-semibold">{formatCurrency(currentPayrollReport.totalGross)}</div>
+                <div className="text-xl font-semibold">{formatCurrency(currentPayrollReport.total_gross)}</div>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Total Net</div>
-                <div className="text-xl font-semibold">{formatCurrency(currentPayrollReport.totalNet)}</div>
+                <div className="text-xl font-semibold">{formatCurrency(currentPayrollReport.total_net)}</div>
               </div>
             </div>
           </div>
@@ -205,13 +206,13 @@ export default function PayrollReportDetails() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {currentPayrollReport.employees && currentPayrollReport.employees.map((employee) => (
-                    <tr key={employee.id} className="hover:bg-gray-50">
+                  {currentPayrollReport.employees && currentPayrollReport.items.map((employee) => (
+                    <tr key={employee.employee_id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div>
                             <div className="text-sm font-medium text-gray-900">
-                              {employee.name}
+                              {employee.employee_name}
                             </div>
                             <div className="text-sm text-gray-500">
                               ID: {employee.employeeId}
