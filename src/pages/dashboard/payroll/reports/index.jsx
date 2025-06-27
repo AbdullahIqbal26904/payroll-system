@@ -161,19 +161,19 @@ export default function PayrollReports() {
                       {report.id}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(report.payDate)}
+                      {formatDate(report.pay_date)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(report.periodStartDate)} - {formatDate(report.periodEndDate)}
+                      {formatDate(report.period_start)} - {formatDate(report.period_end)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {report.employeeCount}
+                      {report.total_employees}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatCurrency(report.totalGross)}
+                      {formatCurrency(report.total_gross)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatCurrency(report.totalNet)}
+                      {formatCurrency(report.total_net)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">

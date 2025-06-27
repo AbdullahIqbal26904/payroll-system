@@ -16,7 +16,6 @@ export default function PayrollReportDetails() {
   
   // Fetch payroll report details
   useEffect(() => {
-    console.log(currentPayrollReport)
     if (id) {
       dispatch(fetchPayrollReportDetails(id));
     }
@@ -123,6 +122,9 @@ export default function PayrollReportDetails() {
               <p className="mt-2 text-sm text-gray-600">
                 Pay Date: {formatDate(currentPayrollReport.pay_date)} | Period: {formatDate(currentPayrollReport.period_start)} - {formatDate(currentPayrollReport.period_end)}
               </p>
+              <p className="text-sm text-gray-600">
+                {currentPayrollReport.report_title}
+              </p>
             </div>
             <button
               onClick={handleEmailPaystubs}
@@ -160,19 +162,27 @@ export default function PayrollReportDetails() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6">
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Social Security (Employee)</div>
-                <div className="text-xl font-semibold">{formatCurrency(currentPayrollReport.totalSocialSecurityEmployee)}</div>
+                <div className="text-xl font-semibold">
+                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + (emp.social_security_employee || 0), 0))}
+                </div>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Social Security (Employer)</div>
-                <div className="text-xl font-semibold">{formatCurrency(currentPayrollReport.totalSocialSecurityEmployer)}</div>
+                <div className="text-xl font-semibold">
+                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + (emp.social_security_employer || 0), 0))}
+                </div>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Medical Benefits</div>
-                <div className="text-xl font-semibold">{formatCurrency(currentPayrollReport.totalMedicalBenefits)}</div>
+                <div className="text-xl font-semibold">
+                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + (emp.medical_benefits_employee || 0), 0))}
+                </div>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Education Levy</div>
-                <div className="text-xl font-semibold">{formatCurrency(currentPayrollReport.totalEducationLevy)}</div>
+                <div className="text-xl font-semibold">
+                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + (emp.education_levy || 0), 0))}
+                </div>
               </div>
             </div>
           </div>
@@ -206,7 +216,7 @@ export default function PayrollReportDetails() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {currentPayrollReport.employees && currentPayrollReport.items.map((employee) => (
+                  {currentPayrollReport.items && currentPayrollReport.items.map((employee) => (
                     <tr key={employee.employee_id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -215,26 +225,30 @@ export default function PayrollReportDetails() {
                               {employee.employee_name}
                             </div>
                             <div className="text-sm text-gray-500">
-                              ID: {employee.employeeId}
+                              ID: {employee.employee_id}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {(employee.regularHours + (employee.overtimeHours || 0)).toFixed(2)} hrs
+                        {employee.hours_worked ? employee.hours_worked : '0.00'} hrs
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatCurrency(employee.grossPay)}
+                        {formatCurrency(employee.gross_pay)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatCurrency(employee.totalDeductions)}
+                        {formatCurrency(
+                          (employee.social_security_employee || 0) + 
+                          (employee.medical_benefits_employee || 0) + 
+                          (employee.education_levy || 0)
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatCurrency(employee.netPay)}
+                        {formatCurrency(employee.net_pay)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
-                          onClick={() => handleDownloadPaystub(employee.id)}
+                          onClick={() => handleDownloadPaystub(employee.employee_id)}
                           className="text-blue-600 hover:text-blue-900"
                           title="Download Paystub"
                         >
