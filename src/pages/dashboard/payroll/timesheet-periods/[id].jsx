@@ -21,6 +21,16 @@ export default function TimesheetPeriodDetails() {
   const { id } = router.query;
   const { currentTimesheetPeriod, loading, error } = useSelector((state) => state.payroll);
   
+  // Process the API response data to extract meaningful statistics
+  const [periodStats, setPeriodStats] = useState({
+    employeeCount: 0,
+    totalHours: 0,
+    regularHours: 0,
+    overtimeHours: 0,
+    missingPunches: 0,
+    employees: []
+  });
+  
   // Fetch timesheet period details
   useEffect(() => {
     if (id) {
@@ -28,12 +38,78 @@ export default function TimesheetPeriodDetails() {
     }
   }, [dispatch, id]);
   
+  // Process data when currentTimesheetPeriod changes
+  useEffect(() => {
+    if (currentTimesheetPeriod && currentTimesheetPeriod.period && currentTimesheetPeriod.entries) {
+      // Get unique employees
+      const employeeMap = new Map();
+      let totalHours = 0;
+      let missingPunches = 0;
+      
+      // Process entries to calculate stats
+      currentTimesheetPeriod.entries.forEach(entry => {
+        // Calculate hours
+        const hoursDecimal = parseFloat(entry.hours_decimal) || 0;
+        totalHours += hoursDecimal;
+        
+        // Check for missing punches
+        if (entry.time_out === '------' || !entry.time_out) {
+          missingPunches++;
+        }
+        
+        // Group by employee
+        const employeeKey = `${entry.first_name} ${entry.last_name}`;
+        if (!employeeMap.has(employeeKey)) {
+          employeeMap.set(employeeKey, {
+            id: entry.employee_id || employeeMap.size + 1,
+            name: employeeKey,
+            employeeId: entry.employee_id || '-',
+            regularHours: 0,
+            overtimeHours: 0,
+            totalHours: 0,
+            email: '-'
+          });
+        }
+        
+        const employee = employeeMap.get(employeeKey);
+        // For simplicity, assume hours over 8 per day are overtime
+        const regularHoursForThisEntry = Math.min(8, hoursDecimal);
+        const overtimeHoursForThisEntry = Math.max(0, hoursDecimal - 8);
+        
+        employee.regularHours += regularHoursForThisEntry;
+        employee.overtimeHours += overtimeHoursForThisEntry;
+        employee.totalHours += hoursDecimal;
+      });
+      
+      // Convert map to array
+      const employees = Array.from(employeeMap.values());
+      
+      // Calculate summary statistics
+      const employeeCount = employeeMap.size;
+      const regularHours = employees.reduce((sum, emp) => sum + emp.regularHours, 0);
+      const overtimeHours = employees.reduce((sum, emp) => sum + emp.overtimeHours, 0);
+      
+      // Update state with calculated stats
+      setPeriodStats({
+        employeeCount,
+        totalHours,
+        regularHours,
+        overtimeHours,
+        missingPunches,
+        employees
+      });
+    }
+  }, [currentTimesheetPeriod]);
+  
   // Handle calculate payroll
   const handleCalculatePayroll = () => {
     if (id) {
       router.push(`/dashboard/payroll/calculate?periodId=${id}`);
     }
   };
+  
+  // Check if period is already processed for payroll
+  const isPeriodProcessed = currentTimesheetPeriod?.period?.status === 'processed';
   
   return (
     <div className="container mx-auto px-4 py-8">
@@ -51,14 +127,14 @@ export default function TimesheetPeriodDetails() {
           <h1 className="text-2xl font-bold text-gray-900">
             Timesheet Period Details
           </h1>
-          {currentTimesheetPeriod && (
+          {currentTimesheetPeriod && currentTimesheetPeriod.period && (
             <p className="mt-2 text-sm text-gray-600">
               {formatDate(currentTimesheetPeriod.period.period_start)} - {formatDate(currentTimesheetPeriod.period.period_end)}
             </p>
           )}
         </div>
         
-        {currentTimesheetPeriod && !currentTimesheetPeriod.payrollProcessed && (
+        {currentTimesheetPeriod && currentTimesheetPeriod.period && currentTimesheetPeriod.period.status !== 'processed' && (
           <button
             onClick={handleCalculatePayroll}
             className="px-4 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -81,7 +157,7 @@ export default function TimesheetPeriodDetails() {
           <strong className="font-bold">Error!</strong>
           <span className="block sm:inline"> {error}</span>
         </div>
-      ) : !currentTimesheetPeriod ? (
+      ) : !currentTimesheetPeriod || !currentTimesheetPeriod.period ? (
         <div className="bg-white shadow-md rounded-lg p-8 text-center">
           <p className="text-gray-600">No data available</p>
         </div>
@@ -93,29 +169,23 @@ export default function TimesheetPeriodDetails() {
             <div className="space-y-4">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Period ID</span>
-                <span className="text-sm font-medium text-gray-900">#{currentTimesheetPeriod.id}</span>
+                <span className="text-sm font-medium text-gray-900">#{currentTimesheetPeriod.period.id}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-500">Report Title</span>
+                <span className="text-sm font-medium text-gray-900">{currentTimesheetPeriod.period.report_title}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Start Date</span>
-                <span className="text-sm font-medium text-gray-900">{formatDate(currentTimesheetPeriod.startDate)}</span>
+                <span className="text-sm font-medium text-gray-900">{formatDate(currentTimesheetPeriod.period.period_start)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">End Date</span>
-                <span className="text-sm font-medium text-gray-900">{formatDate(currentTimesheetPeriod.endDate)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-500">Total Days</span>
-                <span className="text-sm font-medium text-gray-900">{currentTimesheetPeriod.totalDays} days</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-500">Status</span>
-                <span className={`text-sm font-medium ${currentTimesheetPeriod.payrollProcessed ? 'text-green-600' : 'text-yellow-600'}`}>
-                  {currentTimesheetPeriod.payrollProcessed ? 'Processed' : 'Pending'}
-                </span>
+                <span className="text-sm font-medium text-gray-900">{formatDate(currentTimesheetPeriod.period.period_end)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Upload Date</span>
-                <span className="text-sm font-medium text-gray-900">{formatDate(currentTimesheetPeriod.createdAt)}</span>
+                <span className="text-sm font-medium text-gray-900">{formatDate(currentTimesheetPeriod.period.created_at)}</span>
               </div>
             </div>
           </div>
@@ -126,23 +196,23 @@ export default function TimesheetPeriodDetails() {
             <div className="space-y-4">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Employees</span>
-                <span className="text-sm font-medium text-gray-900">{currentTimesheetPeriod.employeeCount}</span>
+                <span className="text-sm font-medium text-gray-900">{periodStats.employeeCount}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Total Hours</span>
-                <span className="text-sm font-medium text-gray-900">{currentTimesheetPeriod.totalHours} hrs</span>
+                <span className="text-sm font-medium text-gray-900">{periodStats.totalHours.toFixed(2)} hrs</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Regular Hours</span>
-                <span className="text-sm font-medium text-gray-900">{currentTimesheetPeriod.regularHours} hrs</span>
+                <span className="text-sm font-medium text-gray-900">{periodStats.regularHours.toFixed(2)} hrs</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Overtime Hours</span>
-                <span className="text-sm font-medium text-gray-900">{currentTimesheetPeriod.overtimeHours} hrs</span>
+                <span className="text-sm font-medium text-gray-900">{periodStats.overtimeHours.toFixed(2)} hrs</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Missing Punches</span>
-                <span className="text-sm font-medium text-gray-900">{currentTimesheetPeriod.missingPunches || 0}</span>
+                <span className="text-sm font-medium text-gray-900">{periodStats.missingPunches}</span>
               </div>
             </div>
           </div>
@@ -150,27 +220,27 @@ export default function TimesheetPeriodDetails() {
           {/* Payroll information */}
           <div className="bg-white shadow-md rounded-lg p-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">Payroll Information</h2>
-            {currentTimesheetPeriod.payrollProcessed ? (
+            {isPeriodProcessed ? (
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">Payroll Date</span>
-                  <span className="text-sm font-medium text-gray-900">{formatDate(currentTimesheetPeriod.payrollDate)}</span>
+                  <span className="text-sm font-medium text-gray-900">{formatDate(currentTimesheetPeriod.period.payroll_date) || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">Gross Amount</span>
-                  <span className="text-sm font-medium text-gray-900">${currentTimesheetPeriod.grossAmount.toFixed(2)}</span>
+                  <span className="text-sm font-medium text-gray-900">${currentTimesheetPeriod.grossAmount?.toFixed(2) || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">Deductions</span>
-                  <span className="text-sm font-medium text-gray-900">${currentTimesheetPeriod.deductions.toFixed(2)}</span>
+                  <span className="text-sm font-medium text-gray-900">${currentTimesheetPeriod.deductions?.toFixed(2) || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">Net Amount</span>
-                  <span className="text-sm font-medium text-gray-900">${currentTimesheetPeriod.netAmount.toFixed(2)}</span>
+                  <span className="text-sm font-medium text-gray-900">${currentTimesheetPeriod.netAmount?.toFixed(2) || 'N/A'}</span>
                 </div>
                 <div className="pt-4 mt-4 border-t border-gray-100">
                   <Link
-                    href={`/dashboard/payroll/reports/${currentTimesheetPeriod.payrollRunId}`}
+                    href={`/dashboard/payroll/reports/${currentTimesheetPeriod.payrollRunId || currentTimesheetPeriod.period.id}`}
                     className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
                   >
                     <DocumentTextIcon className="mr-1 h-4 w-4" />
@@ -197,7 +267,7 @@ export default function TimesheetPeriodDetails() {
       )}
       
       {/* Employee Timesheet Details Section */}
-      {currentTimesheetPeriod && currentTimesheetPeriod.employees && (
+      {currentTimesheetPeriod && periodStats.employees.length > 0 && (
         <div className="mt-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Employee Timesheet Details</h2>
           <div className="bg-white shadow-md rounded-lg overflow-hidden">
@@ -219,7 +289,7 @@ export default function TimesheetPeriodDetails() {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Total Hours
                   </th>
-                  {currentTimesheetPeriod.payrollProcessed && (
+                  {isPeriodProcessed && (
                     <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
@@ -227,7 +297,7 @@ export default function TimesheetPeriodDetails() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {currentTimesheetPeriod.employees.map((employee) => (
+                {periodStats.employees.map((employee) => (
                   <tr key={employee.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -256,12 +326,12 @@ export default function TimesheetPeriodDetails() {
                       <div className="text-sm text-gray-900">{employee.overtimeHours.toFixed(2)} hrs</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{(employee.regularHours + employee.overtimeHours).toFixed(2)} hrs</div>
+                      <div className="text-sm text-gray-900">{employee.totalHours.toFixed(2)} hrs</div>
                     </td>
-                    {currentTimesheetPeriod.payrollProcessed && (
+                    {isPeriodProcessed && (
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <Link
-                          href={`/dashboard/payroll/paystub/${currentTimesheetPeriod.payrollRunId}/${employee.id}`}
+                          href={`/dashboard/payroll/paystub/${currentTimesheetPeriod.payrollRunId || currentTimesheetPeriod.period.id}/${employee.id}`}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           <DocumentTextIcon className="h-5 w-5 inline-block mr-1" />
