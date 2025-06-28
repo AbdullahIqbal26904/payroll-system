@@ -120,10 +120,10 @@ export default function PayrollReportDetails() {
                 Payroll Report #{currentPayrollReport.id}
               </h1>
               <p className="mt-2 text-sm text-gray-600">
-                Pay Date: {formatDate(currentPayrollReport.pay_date)} | Period: {formatDate(currentPayrollReport.period_start)} - {formatDate(currentPayrollReport.period_end)}
+                Pay Date: {formatDate(currentPayrollReport.payDate || currentPayrollReport.pay_date)} | Period: {formatDate(currentPayrollReport.periodStartDate || currentPayrollReport.period_start)} - {formatDate(currentPayrollReport.periodEndDate || currentPayrollReport.period_end)}
               </p>
               <p className="text-sm text-gray-600">
-                {currentPayrollReport.report_title}
+                {currentPayrollReport.reportTitle || currentPayrollReport.report_title}
               </p>
             </div>
             <button
@@ -142,15 +142,15 @@ export default function PayrollReportDetails() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Total Employees</div>
-                <div className="text-xl font-semibold">{currentPayrollReport.total_employees || 0}</div>
+                <div className="text-xl font-semibold">{currentPayrollReport.totalEmployees || currentPayrollReport.total_employees || 0}</div>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Total Gross</div>
-                <div className="text-xl font-semibold">{formatCurrency(currentPayrollReport.total_gross)}</div>
+                <div className="text-xl font-semibold">{formatCurrency(currentPayrollReport.totalGross || currentPayrollReport.total_gross)}</div>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Total Net</div>
-                <div className="text-xl font-semibold">{formatCurrency(currentPayrollReport.total_net)}</div>
+                <div className="text-xl font-semibold">{formatCurrency(currentPayrollReport.totalNet || currentPayrollReport.total_net)}</div>
               </div>
             </div>
           </div>
@@ -159,29 +159,45 @@ export default function PayrollReportDetails() {
             <div className="px-6 py-5 border-b border-gray-200">
               <h2 className="text-lg font-medium text-gray-900">Deductions Summary</h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 p-6">
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Social Security (Employee)</div>
                 <div className="text-xl font-semibold">
-                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + (emp.social_security_employee || 0), 0))}
+                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + (emp.socialSecurityEmployee || emp.social_security_employee || 0), 0))}
                 </div>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Social Security (Employer)</div>
                 <div className="text-xl font-semibold">
-                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + (emp.social_security_employer || 0), 0))}
+                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + (emp.socialSecurityEmployer || emp.social_security_employer || 0), 0))}
                 </div>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="text-sm font-medium text-gray-500 mb-1">Medical Benefits</div>
+                <div className="text-sm font-medium text-gray-500 mb-1">Medical Benefits (Employee)</div>
                 <div className="text-xl font-semibold">
-                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + (emp.medical_benefits_employee || 0), 0))}
+                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + (emp.medicalBenefitsEmployee || emp.medical_benefits_employee || 0), 0))}
+                </div>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="text-sm font-medium text-gray-500 mb-1">Medical Benefits (Employer)</div>
+                <div className="text-xl font-semibold">
+                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + (emp.medicalBenefitsEmployer || emp.medical_benefits_employer || 0), 0))}
                 </div>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Education Levy</div>
                 <div className="text-xl font-semibold">
-                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + (emp.education_levy || 0), 0))}
+                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + (emp.educationLevy || emp.education_levy || 0), 0))}
+                </div>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="text-sm font-medium text-gray-500 mb-1">Total Employer Contributions</div>
+                <div className="text-xl font-semibold">
+                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + 
+                    ((emp.totalEmployerContributions || emp.total_employer_contributions) || 
+                     ((emp.socialSecurityEmployer || emp.social_security_employer || 0) + 
+                      (emp.medicalBenefitsEmployer || emp.medical_benefits_employer || 0))
+                    ), 0))}
                 </div>
               </div>
             </div>
@@ -208,6 +224,9 @@ export default function PayrollReportDetails() {
                       Deductions
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Employer Cont.
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Net Pay
                     </th>
                     <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -217,38 +236,46 @@ export default function PayrollReportDetails() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {currentPayrollReport.items && currentPayrollReport.items.map((employee) => (
-                    <tr key={employee.employee_id} className="hover:bg-gray-50">
+                    <tr key={employee.employeeId || employee.employee_id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div>
                             <div className="text-sm font-medium text-gray-900">
-                              {employee.employee_name}
+                              {employee.employeeName || employee.employee_name}
                             </div>
                             <div className="text-sm text-gray-500">
-                              ID: {employee.employee_id}
+                              ID: {employee.employeeId || employee.employee_id}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {employee.hours_worked ? employee.hours_worked : '0.00'} hrs
+                        {employee.hoursWorked || employee.hours_worked || '0.00'} hrs
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatCurrency(employee.gross_pay)}
+                        {formatCurrency(employee.grossPay || employee.gross_pay)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatCurrency(
-                          (employee.social_security_employee || 0) + 
-                          (employee.medical_benefits_employee || 0) + 
-                          (employee.education_levy || 0)
+                          (employee.totalDeductions || employee.total_deductions) || 
+                          ((employee.socialSecurityEmployee || employee.social_security_employee || 0) + 
+                           (employee.medicalBenefitsEmployee || employee.medical_benefits_employee || 0) + 
+                           (employee.educationLevy || employee.education_levy || 0))
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatCurrency(employee.net_pay)}
+                        {formatCurrency(
+                          (employee.totalEmployerContributions || employee.total_employer_contributions) || 
+                          ((employee.socialSecurityEmployer || employee.social_security_employer || 0) + 
+                           (employee.medicalBenefitsEmployer || employee.medical_benefits_employer || 0))
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatCurrency(employee.netPay || employee.net_pay)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
-                          onClick={() => handleDownloadPaystub(employee.employee_id)}
+                          onClick={() => handleDownloadPaystub(employee.employeeId || employee.employee_id)}
                           className="text-blue-600 hover:text-blue-900"
                           title="Download Paystub"
                         >

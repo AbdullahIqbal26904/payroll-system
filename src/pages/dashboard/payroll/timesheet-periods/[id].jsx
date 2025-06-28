@@ -53,7 +53,7 @@ export default function TimesheetPeriodDetails() {
           </h1>
           {currentTimesheetPeriod && (
             <p className="mt-2 text-sm text-gray-600">
-              {formatDate(currentTimesheetPeriod.startDate)} - {formatDate(currentTimesheetPeriod.endDate)}
+              {formatDate(currentTimesheetPeriod.period.period_start)} - {formatDate(currentTimesheetPeriod.period.period_end)}
             </p>
           )}
         </div>

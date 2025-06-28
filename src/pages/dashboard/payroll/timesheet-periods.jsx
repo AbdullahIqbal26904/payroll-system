@@ -125,25 +125,25 @@ export default function TimesheetPeriods() {
                     <div className="flex items-center">
                       <CalendarIcon className="mr-2 h-5 w-5 text-gray-400" />
                       <span className="text-sm text-gray-500">
-                        {formatDate(period.period_start)} - {formatDate(period.period_end)}
+                        {formatDate(period.periodStart || period.period_start)} - {formatDate(period.periodEnd || period.period_end)}
                       </span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <UserGroupIcon className="mr-2 h-5 w-5 text-gray-400" />
-                      <span className="text-sm text-gray-500">{period.employeeCount} employees</span>
+                      <span className="text-sm text-gray-500">{period.employeeCount || period.employee_count} employees</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      period.payrollProcessed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                      period.payrollProcessed || period.payroll_processed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                     }`}>
-                      {period.payrollProcessed ? 'Processed' : 'Pending'}
+                      {period.payrollProcessed || period.payroll_processed ? 'Processed' : 'Pending'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatDate(period.created_at)}
+                    {formatDate(period.createdAt || period.created_at)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
@@ -152,7 +152,7 @@ export default function TimesheetPeriods() {
                     >
                       <EyeIcon className="h-5 w-5 inline-block" /> View
                     </button>
-                    {!period.payrollProcessed && (
+                    {!(period.payrollProcessed || period.payroll_processed) && (
                       <button
                         onClick={() => handleCalculatePayroll(period.id)}
                         className="text-green-600 hover:text-green-900"
