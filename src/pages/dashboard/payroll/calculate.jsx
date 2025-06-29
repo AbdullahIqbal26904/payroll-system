@@ -136,7 +136,7 @@ export default function CalculatePayroll() {
                 <option value="">-- Select a Timesheet Period --</option>
                 {timesheetPeriods.filter(period => !period.payrollProcessed).map((period) => (
                   <option key={period.id} value={period.id}>
-                    Period #{period.id}: {formatDate(period.startDate)} to {formatDate(period.endDate)}
+                    Period #{period.id}: {formatDate(period.period_start)} to {formatDate(period.period_end)}
                   </option>
                 ))}
               </select>
@@ -171,13 +171,13 @@ export default function CalculatePayroll() {
                     <div>
                       <p className="text-sm font-medium text-gray-500">Date Range</p>
                       <p className="text-lg font-semibold text-gray-900">
-                        {formatDate(currentTimesheetPeriod.startDate)} - {formatDate(currentTimesheetPeriod.endDate)}
+                        {formatDate(currentTimesheetPeriod.period.period_start)} - {formatDate(currentTimesheetPeriod.period.period_end)}
                       </p>
                     </div>
                   </div>
                 </div>
                 
-                <div className="p-4 bg-white rounded-md shadow-sm">
+                {/* <div className="p-4 bg-white rounded-md shadow-sm">
                   <div className="flex items-center">
                     <UserGroupIcon className="h-8 w-8 text-green-500 mr-3" />
                     <div>
@@ -187,9 +187,9 @@ export default function CalculatePayroll() {
                       </p>
                     </div>
                   </div>
-                </div>
+                </div> */}
                 
-                <div className="p-4 bg-white rounded-md shadow-sm">
+                {/* <div className="p-4 bg-white rounded-md shadow-sm">
                   <div className="flex items-center">
                     <ClockIcon className="h-8 w-8 text-purple-500 mr-3" />
                     <div>
@@ -199,7 +199,7 @@ export default function CalculatePayroll() {
                       </p>
                     </div>
                   </div>
-                </div>
+                </div> */}
               </div>
             </div>
             

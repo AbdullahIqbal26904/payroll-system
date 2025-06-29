@@ -34,11 +34,13 @@ export default function PayrollReportDetails() {
 
   // Format currency function
   const formatCurrency = (amount) => {
-    if (amount === undefined || amount === null) return '$0.00';
+    if (amount === undefined || amount === null) return 'EC$0.00';
+    // Make sure to convert to number before formatting to avoid NaN
+    const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'XCD'
-    }).format(amount);
+    }).format(numericAmount || 0); // Use 0 as fallback if parsing results in NaN
   };
 
   // Handle download paystub
@@ -146,11 +148,11 @@ export default function PayrollReportDetails() {
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Total Gross</div>
-                <div className="text-xl font-semibold">{formatCurrency(currentPayrollReport.totalGross || currentPayrollReport.total_gross)}</div>
+                <div className="text-xl font-semibold">{formatCurrency(parseFloat(currentPayrollReport.totalGross || currentPayrollReport.total_gross || 0))}</div>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Total Net</div>
-                <div className="text-xl font-semibold">{formatCurrency(currentPayrollReport.totalNet || currentPayrollReport.total_net)}</div>
+                <div className="text-xl font-semibold">{formatCurrency(parseFloat(currentPayrollReport.totalNet || currentPayrollReport.total_net || 0))}</div>
               </div>
             </div>
           </div>
@@ -163,41 +165,46 @@ export default function PayrollReportDetails() {
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Social Security (Employee)</div>
                 <div className="text-xl font-semibold">
-                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + (emp.socialSecurityEmployee || emp.social_security_employee || 0), 0))}
+                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + parseFloat(emp.socialSecurityEmployee || emp.social_security_employee || 0), 0))}
                 </div>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Social Security (Employer)</div>
                 <div className="text-xl font-semibold">
-                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + (emp.socialSecurityEmployer || emp.social_security_employer || 0), 0))}
+                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + parseFloat(emp.socialSecurityEmployer || emp.social_security_employer || 0), 0))}
                 </div>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Medical Benefits (Employee)</div>
                 <div className="text-xl font-semibold">
-                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + (emp.medicalBenefitsEmployee || emp.medical_benefits_employee || 0), 0))}
+                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + parseFloat(emp.medicalBenefitsEmployee || emp.medical_benefits_employee || 0), 0))}
                 </div>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Medical Benefits (Employer)</div>
                 <div className="text-xl font-semibold">
-                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + (emp.medicalBenefitsEmployer || emp.medical_benefits_employer || 0), 0))}
+                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + parseFloat(emp.medicalBenefitsEmployer || emp.medical_benefits_employer || 0), 0))}
                 </div>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Education Levy</div>
                 <div className="text-xl font-semibold">
-                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + (emp.educationLevy || emp.education_levy || 0), 0))}
+                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + parseFloat(emp.educationLevy || emp.education_levy || 0), 0))}
                 </div>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Total Employer Contributions</div>
                 <div className="text-xl font-semibold">
-                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + 
-                    ((emp.totalEmployerContributions || emp.total_employer_contributions) || 
-                     ((emp.socialSecurityEmployer || emp.social_security_employer || 0) + 
-                      (emp.medicalBenefitsEmployer || emp.medical_benefits_employer || 0))
-                    ), 0))}
+                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => {
+                    const contributions = emp.totalEmployerContributions || emp.total_employer_contributions;
+                    if (contributions) {
+                      return sum + parseFloat(contributions);
+                    } else {
+                      const ssEmployer = parseFloat(emp.socialSecurityEmployer || emp.social_security_employer || 0);
+                      const mbEmployer = parseFloat(emp.medicalBenefitsEmployer || emp.medical_benefits_employer || 0);
+                      return sum + ssEmployer + mbEmployer;
+                    }
+                  }, 0))}
                 </div>
               </div>
             </div>
@@ -253,25 +260,25 @@ export default function PayrollReportDetails() {
                         {employee.hoursWorked || employee.hours_worked || '0.00'} hrs
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatCurrency(employee.grossPay || employee.gross_pay)}
+                        {formatCurrency(parseFloat(employee.grossPay || employee.gross_pay || 0))}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatCurrency(
                           (employee.totalDeductions || employee.total_deductions) || 
-                          ((employee.socialSecurityEmployee || employee.social_security_employee || 0) + 
-                           (employee.medicalBenefitsEmployee || employee.medical_benefits_employee || 0) + 
-                           (employee.educationLevy || employee.education_levy || 0))
+                          (parseFloat(employee.socialSecurityEmployee || employee.social_security_employee || 0) + 
+                           parseFloat(employee.medicalBenefitsEmployee || employee.medical_benefits_employee || 0) + 
+                           parseFloat(employee.educationLevy || employee.education_levy || 0))
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatCurrency(
                           (employee.totalEmployerContributions || employee.total_employer_contributions) || 
-                          ((employee.socialSecurityEmployer || employee.social_security_employer || 0) + 
-                           (employee.medicalBenefitsEmployer || employee.medical_benefits_employer || 0))
+                          (parseFloat(employee.socialSecurityEmployer || employee.social_security_employer || 0) + 
+                           parseFloat(employee.medicalBenefitsEmployer || employee.medical_benefits_employer || 0))
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatCurrency(employee.netPay || employee.net_pay)}
+                        {formatCurrency(parseFloat(employee.netPay || employee.net_pay || 0))}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button

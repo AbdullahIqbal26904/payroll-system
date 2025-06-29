@@ -178,7 +178,7 @@ export default function EmailPaystubs() {
                 <option value="">-- Select a Payroll Report --</option>
                 {payrollReports.map((report) => (
                   <option key={report.id} value={report.id}>
-                    Report #{report.id}: {formatDate(report.payDate)} ({report.employeeCount} employees)
+                    Report #{report.id}: {formatDate(report.pay_date)} ({report.item_count} employees)
                   </option>
                 ))}
               </select>

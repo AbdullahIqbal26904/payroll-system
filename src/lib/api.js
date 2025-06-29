@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://texas.texaswebcoders.com/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL // || 'https://texas.texaswebcoders.com/api';
 
 // Create an axios instance
 const api = axios.create({

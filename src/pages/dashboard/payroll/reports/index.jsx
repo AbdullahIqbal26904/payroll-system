@@ -52,11 +52,13 @@ export default function PayrollReports() {
 
   // Format currency function
   const formatCurrency = (amount) => {
-    if (amount === undefined || amount === null) return '$0.00';
+    if (amount === undefined || amount === null) return 'EC$0.00';
+    // Make sure to convert to number before formatting to avoid NaN
+    const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'XCD'
-    }).format(amount);
+    }).format(numericAmount || 0); // Use 0 as fallback if parsing results in NaN
   };
 
   // Handle view report details
@@ -170,10 +172,10 @@ export default function PayrollReports() {
                       {report.totalEmployees || report.total_employees}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatCurrency(report.totalGross || report.total_gross)}
+                      {formatCurrency(parseFloat(report.totalGross || report.total_gross || 0))}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatCurrency(report.totalNet || report.total_net)}
+                      {formatCurrency(parseFloat(report.totalNet || report.total_net || 0))}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
