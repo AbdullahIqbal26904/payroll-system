@@ -2,25 +2,24 @@ import { downloadBlob } from '@/lib/utils';
 
 /**
  * Handles downloading a paystub file
- * @param {string} payrollRunId - ID of the payroll run
- * @param {string} employeeId - ID of the employee
+ * @param {Blob} blob - The PDF data as a blob
+ * @param {string} filename - The filename to save as
  */
-export async function downloadPaystub(payrollRunId, employeeId) {
-  try {
-    // Make request to our API endpoint
-    const response = await fetch(`/api/downloadPaystub?payrollRunId=${payrollRunId}&employeeId=${employeeId}`);
-    
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-    
-    const blob = await response.blob();
-    const filename = `paystub-${employeeId}.pdf`;
-    
-    // Use our utility function
-    downloadBlob(blob, filename);
-  } catch (error) {
-    console.error('Error downloading paystub:', error);
-    throw error;
-  }
+export function downloadPaystub(blob, filename) {
+  // Use our utility function to handle the download
+  downloadBlob(blob, filename);
+}
+
+/**
+ * Opens a PDF in a new browser tab
+ * @param {Blob} blob - The PDF data as a blob
+ */
+export function openPdfInNewTab(blob) {
+  const url = window.URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  
+  // Clean up the URL object after some time
+  setTimeout(() => {
+    window.URL.revokeObjectURL(url);
+  }, 100);
 }

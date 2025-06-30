@@ -4,10 +4,10 @@ import { useRouter } from 'next/router';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchPayrollReportDetails } from '@/redux/slices/payrollSlice';
 import Link from 'next/link';
-import { ArrowLeftIcon, DocumentArrowDownIcon, EnvelopeIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, DocumentArrowDownIcon, EnvelopeIcon, DocumentTextIcon, EyeIcon } from '@heroicons/react/24/outline';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
-import { downloadPaystub } from '@/lib/PaystubDownloader';
-
+import { downloadPaystub, openPdfInNewTab } from '@/lib/PaystubDownloader';
+import { payrollAPI } from '@/lib/api';
 export default function PayrollReportDetails() {
   const dispatch = useDispatch();
   const router = useRouter();
@@ -43,20 +43,39 @@ export default function PayrollReportDetails() {
     }).format(numericAmount || 0); // Use 0 as fallback if parsing results in NaN
   };
 
-  // Handle download paystub
-  const handleDownloadPaystub = async (employeeId) => {
+  // Get paystub PDF from API
+  const fetchPaystubPdf = async (employeeId) => {
     if (id) {
       try {
-        // Using the payrollAPI to handle blob response properly
-        const response = await fetch(`/api/downloadPaystub?payrollRunId=${id}&employeeId=${employeeId}`);
-        const blob = await response.blob();
-        const filename = `paystub-${employeeId}.pdf`;
+        // Use the API function from api.js which already handles authentication
+        // The api.js already contains the interceptor to add the token
+        const response = await payrollAPI.downloadPaystub(id, employeeId);
         
-        // Use our utility function to handle the download
-        downloadPaystub(blob, filename);
+        // payrollAPI.downloadPaystub already returns a blob due to { responseType: 'blob' }
+        return response.data;
       } catch (error) {
-        console.error('Error downloading paystub:', error);
+        console.error('Error fetching paystub:', error);
+        alert('Failed to fetch paystub. Please try again.');
+        return null;
       }
+    }
+    return null;
+  };
+
+  // Handle download paystub
+  const handleDownloadPaystub = async (employeeId) => {
+    const blob = await fetchPaystubPdf(employeeId);
+    if (blob) {
+      const filename = `paystub-${employeeId}.pdf`;
+      downloadPaystub(blob, filename);
+    }
+  };
+  
+  // Handle view paystub
+  const handleViewPaystub = async (employeeId) => {
+    const blob = await fetchPaystubPdf(employeeId);
+    if (blob) {
+      openPdfInNewTab(blob);
     }
   };
 
@@ -281,14 +300,24 @@ export default function PayrollReportDetails() {
                         {formatCurrency(parseFloat(employee.netPay || employee.net_pay || 0))}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                          onClick={() => handleDownloadPaystub(employee.employeeId || employee.employee_id)}
-                          className="text-blue-600 hover:text-blue-900"
-                          title="Download Paystub"
-                        >
-                          <DocumentArrowDownIcon className="h-5 w-5" aria-hidden="true" />
-                          <span className="sr-only">Download Paystub</span>
-                        </button>
+                        <div className="flex justify-end space-x-3">
+                          <button
+                            onClick={() => handleDownloadPaystub(employee.employeeId || employee.employee_id)}
+                            className="text-blue-600 hover:text-blue-900"
+                            title="Download Paystub"
+                          >
+                            <DocumentArrowDownIcon className="h-5 w-5" aria-hidden="true" />
+                            <span className="sr-only">Download Paystub</span>
+                          </button>
+                          <button
+                            onClick={() => handleViewPaystub(employee.employeeId || employee.employee_id)}
+                            className="text-green-600 hover:text-green-900"
+                            title="View Paystub"
+                          >
+                            <EyeIcon className="h-5 w-5" aria-hidden="true" />
+                            <span className="sr-only">View Paystub</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
