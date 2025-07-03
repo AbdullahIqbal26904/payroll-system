@@ -89,6 +89,7 @@ export const payrollAPI = {
   
   // Paystub endpoints
   downloadPaystub: (payrollRunId, employeeId) => api.get(`/payroll/paystub/${payrollRunId}/${employeeId}`, { responseType: 'blob' }),
+  viewPaystub: (payrollRunId, employeeId) => api.get(`/payroll/paystub/${payrollRunId}/${employeeId}?view=detailed`, { responseType: 'blob' }),
   emailPaystubs: (data) => api.post('/payroll/email-paystubs', data),
   
   // Settings endpoints

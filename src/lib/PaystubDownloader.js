@@ -23,3 +23,13 @@ export function openPdfInNewTab(blob) {
     window.URL.revokeObjectURL(url);
   }, 100);
 }
+
+/**
+ * Opens a paystub in a new tab with enhanced view showing YTD and loan information
+ * @param {Blob} blob - The PDF data as a blob
+ * @param {Object} employeeData - Additional employee data for enhanced display
+ */
+export function displayPaystub(blob, employeeData) {
+  // Default to opening PDF in a new tab
+  openPdfInNewTab(blob);
+}

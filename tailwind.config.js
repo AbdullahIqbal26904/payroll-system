@@ -6,7 +6,11 @@ module.exports = {
     "./app/**/*.{js,ts,jsx,tsx}", // (optional, for Next.js 13+)
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontSize: {
+        'xxs': '0.65rem',
+      }
+    },
   },
   plugins: [],
 }

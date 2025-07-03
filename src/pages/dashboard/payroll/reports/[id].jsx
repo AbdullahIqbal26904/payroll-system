@@ -13,6 +13,7 @@ export default function PayrollReportDetails() {
   const router = useRouter();
   const { id } = router.query;
   const { currentPayrollReport, loading, error } = useSelector((state) => state.payroll);
+  const [showYtdData, setShowYtdData] = useState(false);
   
   // Fetch payroll report details
   useEffect(() => {
@@ -73,9 +74,17 @@ export default function PayrollReportDetails() {
   
   // Handle view paystub
   const handleViewPaystub = async (employeeId) => {
-    const blob = await fetchPaystubPdf(employeeId);
-    if (blob) {
-      openPdfInNewTab(blob);
+    if (id) {
+      try {
+        // Use the enhanced view paystub API
+        const response = await payrollAPI.viewPaystub(id, employeeId);
+        
+        // Open the PDF in a new tab
+        openPdfInNewTab(response.data);
+      } catch (error) {
+        console.error('Error viewing paystub:', error);
+        alert('Failed to view paystub. Please try again.');
+      }
     }
   };
 
@@ -160,7 +169,7 @@ export default function PayrollReportDetails() {
             <div className="px-6 py-5 border-b border-gray-200">
               <h2 className="text-lg font-medium text-gray-900">Summary</h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6">
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Total Employees</div>
                 <div className="text-xl font-semibold">{currentPayrollReport.totalEmployees || currentPayrollReport.total_employees || 0}</div>
@@ -168,10 +177,34 @@ export default function PayrollReportDetails() {
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Total Gross</div>
                 <div className="text-xl font-semibold">{formatCurrency(parseFloat(currentPayrollReport.totalGross || currentPayrollReport.total_gross || 0))}</div>
+                {showYtdData && 
+                  <div className="text-sm text-gray-400 mt-1">
+                    YTD Total: {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + parseFloat(emp.ytdGrossPay || emp.ytd_gross_pay || 0), 0))}
+                  </div>
+                }
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Total Net</div>
                 <div className="text-xl font-semibold">{formatCurrency(parseFloat(currentPayrollReport.totalNet || currentPayrollReport.total_net || 0))}</div>
+                {showYtdData && 
+                  <div className="text-sm text-gray-400 mt-1">
+                    YTD Total: {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + parseFloat(emp.ytdNetPay || emp.ytd_net_pay || 0), 0))}
+                  </div>
+                }
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="text-sm font-medium text-gray-500 mb-1">Total Loan Deductions</div>
+                <div className="text-xl font-semibold">
+                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + parseFloat(emp.loanDeduction || emp.loan_deduction || 0), 0))}
+                </div>
+                {showYtdData && 
+                  <div className="text-sm text-gray-400 mt-1">
+                    YTD Total: {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + parseFloat(emp.ytdLoanDeduction || emp.ytd_loan_deduction || 0), 0))}
+                  </div>
+                }
+                <div className="text-xs text-gray-400 mt-2">
+                  Employees with Loans: {currentPayrollReport.items?.filter(emp => parseFloat(emp.loanDeduction || emp.loan_deduction || 0) > 0).length || 0}
+                </div>
               </div>
             </div>
           </div>
@@ -180,7 +213,7 @@ export default function PayrollReportDetails() {
             <div className="px-6 py-5 border-b border-gray-200">
               <h2 className="text-lg font-medium text-gray-900">Deductions Summary</h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-6 p-6">
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Social Security (Employee)</div>
                 <div className="text-xl font-semibold">
@@ -212,6 +245,12 @@ export default function PayrollReportDetails() {
                 </div>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="text-sm font-medium text-gray-500 mb-1">Loan Deductions</div>
+                <div className="text-xl font-semibold">
+                  {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + parseFloat(emp.loanDeduction || emp.loan_deduction || 0), 0))}
+                </div>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="text-sm font-medium text-gray-500 mb-1">Total Employer Contributions</div>
                 <div className="text-xl font-semibold">
                   {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => {
@@ -230,8 +269,20 @@ export default function PayrollReportDetails() {
           </div>
 
           <div className="bg-white shadow-md rounded-lg overflow-hidden">
-            <div className="px-6 py-5 border-b border-gray-200">
+            <div className="px-6 py-5 border-b border-gray-200 flex justify-between items-center">
               <h2 className="text-lg font-medium text-gray-900">Employee Details</h2>
+              <div className="flex items-center">
+                <button
+                  onClick={() => setShowYtdData(!showYtdData)}
+                  className={`inline-flex items-center px-3 py-1.5 border rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                    showYtdData 
+                      ? 'bg-blue-600 text-white hover:bg-blue-700 border-transparent' 
+                      : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                  }`}
+                >
+                  {showYtdData ? 'Hide YTD Data' : 'Show YTD Data'}
+                </button>
+              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -245,15 +296,24 @@ export default function PayrollReportDetails() {
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Gross Pay
+                      {showYtdData && <span className="block text-xxs">YTD: {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + parseFloat(emp.ytdGrossPay || emp.ytd_gross_pay || 0), 0))}</span>}
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Deductions
+                      {showYtdData && <span className="block text-xxs">YTD Total</span>}
                     </th>
+                    {showYtdData && 
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Loan Details
+                      </th>
+                    }
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Employer Cont.
+                      {showYtdData && <span className="block text-xxs">YTD: {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + parseFloat(emp.ytdEmployerContributions || emp.ytd_employer_contributions || 0), 0))}</span>}
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Net Pay
+                      {showYtdData && <span className="block text-xxs">YTD: {formatCurrency(currentPayrollReport.items?.reduce((sum, emp) => sum + parseFloat(emp.ytdNetPay || emp.ytd_net_pay || 0), 0))}</span>}
                     </th>
                     <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
@@ -279,43 +339,92 @@ export default function PayrollReportDetails() {
                         {employee.hoursWorked || employee.hours_worked || '0.00'} hrs
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatCurrency(parseFloat(employee.grossPay || employee.gross_pay || 0))}
+                        <div>{formatCurrency(parseFloat(employee.grossPay || employee.gross_pay || 0))}</div>
+                        {showYtdData && 
+                          <div className="text-xs text-gray-400 mt-1">
+                            YTD: {formatCurrency(parseFloat(employee.ytdGrossPay || employee.ytd_gross_pay || 0))}
+                          </div>
+                        }
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatCurrency(
-                          (employee.totalDeductions || employee.total_deductions) || 
-                          (parseFloat(employee.socialSecurityEmployee || employee.social_security_employee || 0) + 
-                           parseFloat(employee.medicalBenefitsEmployee || employee.medical_benefits_employee || 0) + 
-                           parseFloat(employee.educationLevy || employee.education_levy || 0))
-                        )}
+                        <div>
+                          {formatCurrency(
+                            (employee.totalDeductions || employee.total_deductions) || 
+                            (parseFloat(employee.socialSecurityEmployee || employee.social_security_employee || 0) + 
+                            parseFloat(employee.medicalBenefitsEmployee || employee.medical_benefits_employee || 0) + 
+                            parseFloat(employee.educationLevy || employee.education_levy || 0) +
+                            parseFloat(employee.loanDeduction || employee.loan_deduction || 0))
+                          )}
+                        </div>
+                        {showYtdData && 
+                          <div className="text-xs mt-1">
+                            <div className="text-gray-400">
+                              YTD: {formatCurrency(
+                                parseFloat(employee.ytdSocialSecurityEmployee || employee.ytd_social_security_employee || 0) + 
+                                parseFloat(employee.ytdMedicalBenefitsEmployee || employee.ytd_medical_benefits_employee || 0) + 
+                                parseFloat(employee.ytdEducationLevy || employee.ytd_education_levy || 0) +
+                                parseFloat(employee.ytdLoanDeduction || employee.ytd_loan_deduction || 0)
+                              )}
+                            </div>
+                          </div>
+                        }
+                      </td>
+                      {showYtdData && 
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {parseFloat(employee.loanDeduction || employee.loan_deduction || 0) > 0 ? (
+                            <>
+                              <div>Current: {formatCurrency(parseFloat(employee.loanDeduction || employee.loan_deduction || 0))}</div>
+                              <div className="text-xs text-gray-400 mt-1">
+                                YTD: {formatCurrency(parseFloat(employee.ytdLoanDeduction || employee.ytd_loan_deduction || 0))}
+                              </div>
+                              <div className="text-xs text-gray-400 mt-1">
+                                Bal: {formatCurrency(parseFloat(employee.loanBalance || employee.loan_balance || 0))}
+                              </div>
+                            </>
+                          ) : (
+                            <span className="text-xs text-gray-400">No active loans</span>
+                          )}
+                        </td>
+                      }
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div>
+                          {formatCurrency(
+                            (employee.totalEmployerContributions || employee.total_employer_contributions) || 
+                            (parseFloat(employee.socialSecurityEmployer || employee.social_security_employer || 0) + 
+                            parseFloat(employee.medicalBenefitsEmployer || employee.medical_benefits_employer || 0))
+                          )}
+                        </div>
+                        {showYtdData && 
+                          <div className="text-xs text-gray-400 mt-1">
+                            YTD: {formatCurrency(parseFloat(employee.ytdEmployerContributions || employee.ytd_employer_contributions || 0))}
+                          </div>
+                        }
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatCurrency(
-                          (employee.totalEmployerContributions || employee.total_employer_contributions) || 
-                          (parseFloat(employee.socialSecurityEmployer || employee.social_security_employer || 0) + 
-                           parseFloat(employee.medicalBenefitsEmployer || employee.medical_benefits_employer || 0))
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatCurrency(parseFloat(employee.netPay || employee.net_pay || 0))}
+                        <div>{formatCurrency(parseFloat(employee.netPay || employee.net_pay || 0))}</div>
+                        {showYtdData && 
+                          <div className="text-xs text-gray-400 mt-1">
+                            YTD: {formatCurrency(parseFloat(employee.ytdNetPay || employee.ytd_net_pay || 0))}
+                          </div>
+                        }
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-3">
                           <button
-                            onClick={() => handleDownloadPaystub(employee.employeeId || employee.employee_id)}
-                            className="text-blue-600 hover:text-blue-900"
-                            title="Download Paystub"
-                          >
-                            <DocumentArrowDownIcon className="h-5 w-5" aria-hidden="true" />
-                            <span className="sr-only">Download Paystub</span>
-                          </button>
-                          <button
                             onClick={() => handleViewPaystub(employee.employeeId || employee.employee_id)}
-                            className="text-green-600 hover:text-green-900"
+                            className="text-blue-600 hover:text-blue-900"
                             title="View Paystub"
                           >
                             <EyeIcon className="h-5 w-5" aria-hidden="true" />
                             <span className="sr-only">View Paystub</span>
+                          </button>
+                          <button
+                            onClick={() => handleDownloadPaystub(employee.employeeId || employee.employee_id)}
+                            className="text-green-600 hover:text-green-900"
+                            title="Download Paystub"
+                          >
+                            <DocumentArrowDownIcon className="h-5 w-5" aria-hidden="true" />
+                            <span className="sr-only">Download Paystub</span>
                           </button>
                         </div>
                       </td>
