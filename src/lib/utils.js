@@ -14,6 +14,24 @@ export function cn(...inputs) {
 }
 
 /**
+ * Formats a number as currency with $ symbol
+ * 
+ * @param {number|string} amount - The amount to format
+ * @param {string} [currency='USD'] - The currency code
+ * @returns {string} - Formatted currency string
+ */
+export function formatCurrency(amount, currency = 'USD') {
+  if (amount === null || amount === undefined) return '$0.00';
+  
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
+/**
  * Extracts initials from a person's name
  * Takes the first letter of each word in the name
  * 
@@ -78,18 +96,9 @@ export function formatDate(date, options = {}) {
 }
 
 /**
- * Formats a currency value
- * 
- * @param {number} amount - Amount to format
- * @param {string} currency - Currency code (default: 'USD')
- * @returns {string} - Formatted currency string
+ * This function has been moved up in the file
+ * to prevent duplicate declaration
  */
-export function formatCurrency(amount, currency = 'USD') {
-  return new Intl.NumberFormat(undefined, {
-    style: 'currency',
-    currency,
-  }).format(amount);
-}
 
 /**
  * Truncates text to a specified length

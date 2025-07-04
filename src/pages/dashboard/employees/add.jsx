@@ -25,7 +25,7 @@ export default function AddEmployee() {
     salary_amount: '',
     payment_frequency: 'Monthly',
     // New fields
-    hourly_rate: '',
+    hourly_rate: null,
     is_exempt_ss: false,
     is_exempt_medical: false
   });
@@ -36,7 +36,8 @@ export default function AddEmployee() {
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : 
-              (name === 'salary_amount' || name === 'hourly_rate') ? parseFloat(value) || '' : 
+              name === 'salary_amount' ? parseFloat(value) || '' :
+              name === 'hourly_rate' ? (value === '' ? null : parseFloat(value)) :
               value
     }));
   };
@@ -44,7 +45,15 @@ export default function AddEmployee() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const resultAction = await dispatch(addEmployee(formData));
+      // Clean up the data before sending
+      const cleanedData = { ...formData };
+      
+      // Remove hourly_rate if it's null or empty (for salaried employees)
+      if (cleanedData.hourly_rate === null || cleanedData.hourly_rate === '') {
+        delete cleanedData.hourly_rate;
+      }
+      
+      const resultAction = await dispatch(addEmployee(cleanedData));
       if (addEmployee.fulfilled.match(resultAction)) {
         toast.success('Employee added successfully!');
         router.push('/dashboard/employees');
@@ -323,7 +332,7 @@ export default function AddEmployee() {
                     onChange={handleChange}
                     className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   >
-                    <option value="Bi-Weekly">Bi-weekly</option>
+                    <option value="Bi-Weekly">Bi-Weekly</option>
                     <option value="Monthly">Monthly</option>
                   </select>
                 </div>
@@ -343,7 +352,7 @@ export default function AddEmployee() {
                       id="hourly_rate"
                       min="0"
                       step="0.01"
-                      value={formData.hourly_rate}
+                      value={formData.hourly_rate || ''}
                       onChange={handleChange}
                       className="mt-1 block w-full pl-7 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />

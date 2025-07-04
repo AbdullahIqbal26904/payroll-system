@@ -43,6 +43,15 @@ const menuItems = [
       { name: 'Payroll Settings', href: '/dashboard/payroll/settings' },
     ]
   },
+  { 
+    name: 'Employee Loans', 
+    href: '/dashboard/employeeLoans', 
+    icon: DocumentTextIcon,
+    submenu: [
+      { name: 'All Loans', href: '/dashboard/employeeLoans' },
+      { name: 'Add Loan', href: '/dashboard/employeeLoans/add' },
+    ]
+  },
   { name: 'Reports', href: '/dashboard/reports', icon: ChartBarIcon },
   { 
     name: 'Users', 

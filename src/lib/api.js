@@ -97,6 +97,24 @@ export const payrollAPI = {
   updatePayrollSettings: (settingsData) => api.put('/payroll/settings', settingsData)
 };
 
+// Employee Loans API calls
+export const loansAPI = {
+  // Get all loans with optional filters
+  getAllLoans: (params) => api.get('/loans', { params }),
+  
+  // Get loan by ID
+  getLoan: (id) => api.get(`/loans/${id}`),
+  
+  // Create a new loan
+  createLoan: (loanData) => api.post('/loans', loanData),
+  
+  // Update an existing loan
+  updateLoan: (id, loanData) => api.put(`/loans/${id}`, loanData),
+  
+  // Get all loans for a specific employee
+  getEmployeeLoans: (employeeId, params) => api.get(`/employees/${employeeId}/loans`, { params })
+};
+
 // Health check
 export const healthCheck = () => api.get('/health');
 
