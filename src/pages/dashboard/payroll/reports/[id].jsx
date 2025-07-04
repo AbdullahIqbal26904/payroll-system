@@ -322,7 +322,7 @@ export default function PayrollReportDetails() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {currentPayrollReport.items && currentPayrollReport.items.map((employee) => (
-                    <tr key={employee.employeeId || employee.employee_id} className="hover:bg-gray-50">
+                    <tr key={employee.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div>
@@ -330,7 +330,7 @@ export default function PayrollReportDetails() {
                               {employee.employeeName || employee.employee_name}
                             </div>
                             <div className="text-sm text-gray-500">
-                              ID: {employee.employeeId || employee.employee_id}
+                              ID: {employee.employee_id}
                             </div>
                           </div>
                         </div>
@@ -411,7 +411,7 @@ export default function PayrollReportDetails() {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-3">
                           <button
-                            onClick={() => handleViewPaystub(employee.employeeId || employee.employee_id)}
+                            onClick={() => handleViewPaystub(employee.id || employee.employee_id)}
                             className="text-blue-600 hover:text-blue-900"
                             title="View Paystub"
                           >
@@ -419,7 +419,7 @@ export default function PayrollReportDetails() {
                             <span className="sr-only">View Paystub</span>
                           </button>
                           <button
-                            onClick={() => handleDownloadPaystub(employee.employeeId || employee.employee_id)}
+                            onClick={() => handleDownloadPaystub(employee.id || employee.employee_id)}
                             className="text-green-600 hover:text-green-900"
                             title="Download Paystub"
                           >

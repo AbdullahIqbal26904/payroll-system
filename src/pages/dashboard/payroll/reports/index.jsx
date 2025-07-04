@@ -14,6 +14,7 @@ export default function PayrollReports() {
   // Fetch payroll reports on page load
   useEffect(() => {
     dispatch(fetchPayrollReports());
+    console.log(payrollReports)
   }, [dispatch]);
 
   // Format date function
@@ -157,8 +158,8 @@ export default function PayrollReports() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {payrollReports.map((report) => (
-                  <tr key={report.id} className="hover:bg-gray-50">
+                {payrollReports.map((report,index) => (
+                  <tr key={index} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {report.id}
                     </td>

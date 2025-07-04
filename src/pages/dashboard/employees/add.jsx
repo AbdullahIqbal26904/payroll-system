@@ -12,6 +12,7 @@ export default function AddEmployee() {
   const { loading, error } = useSelector((state) => state.employees);
   
   const [formData, setFormData] = useState({
+    employee_id: '',
     first_name: '',
     last_name: '',
     email: '',
@@ -47,6 +48,12 @@ export default function AddEmployee() {
     try {
       // Clean up the data before sending
       const cleanedData = { ...formData };
+      
+      // Validate employee_id (mandatory field)
+      if (!cleanedData.employee_id || cleanedData.employee_id.trim() === '') {
+        toast.error('Employee ID is required');
+        return;
+      }
       
       // Remove hourly_rate if it's null or empty (for salaried employees)
       if (cleanedData.hourly_rate === null || cleanedData.hourly_rate === '') {
@@ -115,6 +122,23 @@ export default function AddEmployee() {
               <h2 className="text-lg font-medium text-gray-900 mb-4">Personal Information</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Employee ID */}
+                <div>
+                  <label htmlFor="employee_id" className="block text-sm font-medium text-gray-700">
+                    Employee ID <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="employee_id"
+                    id="employee_id"
+                    required
+                    value={formData.employee_id}
+                    onChange={handleChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="E.g., EMP001"
+                  />
+                </div>
+                
                 {/* First Name */}
                 <div>
                   <label htmlFor="first_name" className="block text-sm font-medium text-gray-700">
