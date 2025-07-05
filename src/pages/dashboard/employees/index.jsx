@@ -193,9 +193,9 @@ export default function EmployeesList() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {employees?.map((employee) => (
-                    <tr key={employee.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{employee.employee_id}</td>
+                  {employees?.map((employee,index) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{employee.id}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {employee.first_name} {employee.last_name}
                       </td>

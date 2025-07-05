@@ -157,7 +157,7 @@ export default function EmployeeLoans() {
               >
                 <option value="">All Employees</option>
                 {employees?.map((employee) => (
-                  <option key={employee.id} value={employee.id}>
+                  <option key={employee.id} value={employee.employee_id}>
                     {employee.first_name} {employee.last_name}
                   </option>
                 ))}
@@ -242,7 +242,7 @@ export default function EmployeeLoans() {
                   {loans?.map((loan) => (
                     <tr key={loan.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="font-medium text-gray-900">{loan.employee_name}</div>
+                        <div className="font-medium text-gray-900">{loan.employee_id}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {formatCurrency(loan.loan_amount)}
