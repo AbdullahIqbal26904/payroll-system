@@ -115,6 +115,30 @@ export const loansAPI = {
   getEmployeeLoans: (employeeId, params) => api.get(`/employees/${employeeId}/loans`, { params })
 };
 
+// Vacation API calls
+export const vacationAPI = {
+  // Get vacation summary for a specific employee
+  getVacationSummary: (employeeId, params) => api.get(`/vacation/summary/${employeeId}`, { params }),
+  
+  // Initialize or update vacation entitlement
+  initializeVacation: (vacationData) => api.post('/vacation/initialize', vacationData),
+  
+  // Create a new vacation request
+  createVacationRequest: (requestData) => api.post('/vacation/request', requestData),
+  
+  // Get vacation requests for a specific employee
+  getEmployeeVacationRequests: (employeeId, params) => api.get(`/vacation/requests/${employeeId}`, { params }),
+  
+  // Get all vacation requests (admin)
+  getAllVacationRequests: (params) => api.get('/vacation/requests', { params }),
+  
+  // Update vacation request status (approve/deny)
+  updateVacationRequestStatus: (requestId, statusData) => api.put(`/vacation/requests/${requestId}/status`, statusData),
+  
+  // Get details of a specific vacation request
+  getVacationRequestDetails: (requestId) => api.get(`/vacation/requests/detail/${requestId}`)
+};
+
 // Health check
 export const healthCheck = () => api.get('/health');
 

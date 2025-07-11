@@ -44,6 +44,16 @@ const menuItems = [
     ]
   },
   { 
+    name: 'Vacation', 
+    href: '/dashboard/vacation', 
+    icon: CalendarIcon,
+    submenu: [
+      { name: 'Vacation Dashboard', href: '/dashboard/vacation' },
+      { name: 'Initialize Vacation', href: '/dashboard/vacation/initialize' },
+      { name: 'New Request', href: '/dashboard/vacation/request' },
+    ]
+  },
+  { 
     name: 'Employee Loans', 
     href: '/dashboard/employeeLoans', 
     icon: DocumentTextIcon,
