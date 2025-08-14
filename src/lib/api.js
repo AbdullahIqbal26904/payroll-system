@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL // || 'https://texas.texaswebcoders.com/api';
 
@@ -7,13 +8,16 @@ const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  // Only use withCredentials for non-login requests
+  // For login requests we'll handle cookies manually
+  withCredentials: false 
 });
 
 // Request interceptor for adding token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = Cookies.get('token');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
@@ -32,10 +36,13 @@ api.interceptors.response.use(
   (error) => {
     // Handle 401 (Unauthorized) responses
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      Cookies.remove('token');
+      Cookies.remove('user');
+      Cookies.remove('tempToken');
+      Cookies.remove('userId');
       // Redirect to login page if not already there
-      if (window.location.pathname !== '/login') {
+      if (window.location.pathname !== '/login' && 
+          !window.location.pathname.includes('/mfa-verification')) {
         window.location.href = '/login';
       }
     }
@@ -45,9 +52,28 @@ api.interceptors.response.use(
 
 // Auth API calls
 export const authAPI = {
-  login: (credentials) => api.post('/auth/login', credentials),
+  // Basic authentication
+  login: (credentials) => api.post('/auth/login', credentials, { withCredentials: false }),
   getCurrentUser: () => api.get('/auth/me'),
-  changePassword: (passwordData) => api.put('/auth/change-password', passwordData)
+  changePassword: (passwordData) => api.put('/auth/change-password', passwordData),
+  
+  // App-based MFA routes
+  setupMfa: () => api.post('/auth/setup-mfa'),
+  verifySetupMfa: (token) => api.post('/auth/verify-setup-mfa', { token }),
+  disableMfa: (password) => api.post('/auth/disable-mfa', { password }),
+  generateBackupCodes: () => api.post('/auth/generate-backup-codes'),
+  
+  // Email-based MFA routes
+  setupEmailMfa: () => api.post('/auth/setup-email-mfa'),
+  verifyEmailMfa: (code) => api.post('/auth/verify-email-mfa', { code }),
+  disableEmailMfa: (password) => api.post('/auth/disable-email-mfa', { password }),
+  
+  // MFA Verification routes (with temporary token)
+  verifyMfa: (userId, token, useBackupCode = false) => 
+    api.post('/auth/verify-mfa', { userId, token, useBackupCode }),
+  sendMfaCode: (userId) => api.post('/auth/send-mfa-code', { userId }),
+  verifyEmailMfaLogin: (userId, code) => 
+    api.post('/auth/verify-email-mfa-login', { userId, code })
 };
 
 // Users API calls

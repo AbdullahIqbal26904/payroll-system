@@ -6,20 +6,40 @@ import store from "@/redux/app/store";
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { checkTokenValidity, getCurrentUser } from "@/redux/slices/authSlice";
+import { isAuthenticated, needsMfaVerification } from "@/lib/auth";
 
 function AppContent({ Component, pageProps }) {
   const router = useRouter();
   const publicRoutes = ['/login', '/register', '/forgot-password'];
+  const mfaRoutes = ['/mfa-verification'];
   
   useEffect(() => {
     const checkAuth = async () => {
-      // Only do the auth check when the component mounts, not on every route change
-      if (checkTokenValidity()) {
+      // Check if user has a temporary MFA token
+      if (needsMfaVerification()) {
+        // If on a public route but needs MFA verification, redirect to MFA verification page
+        if (publicRoutes.includes(router.pathname)) {
+          router.push('/mfa-verification');
+          return;
+        }
+        
+        // If already on MFA verification page, don't redirect
+        if (mfaRoutes.includes(router.pathname)) {
+          return;
+        }
+        
+        // If not on MFA verification page but has temp token, redirect to MFA verification
+        router.push('/mfa-verification');
+        return;
+      }
+      
+      // Check if user is authenticated with a valid token
+      if (isAuthenticated() && checkTokenValidity()) {
         // Valid token, get current user
         await store.dispatch(getCurrentUser());
         
-        // If we're on the login page and already authenticated, redirect to dashboard
-        if (publicRoutes.includes(router.pathname)) {
+        // If we're on the login page or MFA page and already authenticated, redirect to dashboard
+        if ([...publicRoutes, ...mfaRoutes].includes(router.pathname)) {
           router.push('/dashboard');
         }
       } else if (!publicRoutes.includes(router.pathname)) {
@@ -29,7 +49,7 @@ function AppContent({ Component, pageProps }) {
     };
     
     checkAuth();
-  }, []); // Empty dependency array so this only runs once on mount
+  }, [router.pathname]); // Run on route changes to ensure proper redirects
 
   // Use the layout defined at the page level, if available
   const getLayout = Component.getLayout || ((page) => page);

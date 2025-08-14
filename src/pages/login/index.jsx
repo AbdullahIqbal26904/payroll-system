@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
-import { loginUser, clearError } from '@/redux/slices/authSlice';
+import { loginUser, clearError, resetMfaState } from '@/redux/slices/authSlice';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -12,11 +12,12 @@ export default function Login() {
   
   const router = useRouter();
   const dispatch = useDispatch();
-  const { isAuthenticated, loading, error } = useSelector((state) => state.auth);
+  const { isAuthenticated, loading, error, mfa } = useSelector((state) => state.auth);
   
   useEffect(() => {
-    // Clear any previous errors on component mount
+    // Clear any previous errors on component mount and reset MFA state
     dispatch(clearError());
+    dispatch(resetMfaState());
     
     // We don't need to redirect here, _app.js will handle it
     // This prevents double redirection
@@ -27,10 +28,23 @@ export default function Login() {
     
     try {
       const resultAction = await dispatch(loginUser({ email, password }));
+      
       if (loginUser.fulfilled.match(resultAction)) {
-        toast.success('Login successful!');
-        // Explicitly navigate to dashboard after successful login
-        router.push('/dashboard');
+        // Check if MFA is required
+        if (resultAction.payload.requireMFA) {
+          const mfaType = resultAction.payload.mfaType;
+          
+          if (mfaType === 'email') {
+            toast.info('Verification code sent to your email');
+          } else {
+            toast.info('Additional verification required');
+          }
+          
+          router.push('/mfa-verification');
+        } else {
+          toast.success('Login successful!');
+          router.push('/dashboard');
+        }
       }
     } catch (err) {
       // Error is handled by the reducer
