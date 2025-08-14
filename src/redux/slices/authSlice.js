@@ -113,9 +113,13 @@ export const setupMfa = createAsyncThunk(
 
 export const verifySetupMfa = createAsyncThunk(
   'auth/verifySetupMfa',
-  async (token, { rejectWithValue }) => {
+  async (params, { rejectWithValue }) => {
     try {
-      const response = await authAPI.verifySetupMfa(token);
+      // Handle both string and object formats for backward compatibility
+      const token = typeof params === 'string' ? params : params.code;
+      const isBackupCode = typeof params === 'object' ? params.isBackupCode : false;
+      
+      const response = await authAPI.verifySetupMfa({ token, isBackupCode });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to verify MFA setup');

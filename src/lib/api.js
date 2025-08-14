@@ -59,7 +59,7 @@ export const authAPI = {
   
   // App-based MFA routes
   setupMfa: () => api.post('/auth/setup-mfa'),
-  verifySetupMfa: (token) => api.post('/auth/verify-setup-mfa', { token }),
+  verifySetupMfa: (params) => api.post('/auth/verify-setup-mfa', params),
   disableMfa: (password) => api.post('/auth/disable-mfa', { password }),
   generateBackupCodes: () => api.post('/auth/generate-backup-codes'),
   
