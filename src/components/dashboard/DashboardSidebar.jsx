@@ -71,14 +71,34 @@ const menuItems = [
       { name: 'All Users', href: '/dashboard/users' },
       { name: 'Add User', href: '/dashboard/users/add' },
     ]
-  },
-  { name: 'Settings', href: '/dashboard/settings', icon: Cog6ToothIcon },
+  }
 ];
 
 export default function DashboardSidebar({ sidebarOpen, setSidebarOpen }) {
   const router = useRouter();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  
+  // Create state for submenu open/closed status
+  const [submenuStates, setSubmenuStates] = useState(() => {
+    // Initialize with menu items that should be open based on current path
+    const initialStates = {};
+    menuItems.forEach((item, index) => {
+      const isActive = item.href === '/dashboard' 
+        ? router.pathname === '/dashboard' 
+        : router.pathname === item.href || router.pathname.startsWith(`${item.href}/`);
+      initialStates[index] = isActive;
+    });
+    return initialStates;
+  });
+
+  // Function to toggle submenu open/closed state
+  const toggleSubmenu = (index) => {
+    setSubmenuStates(prevStates => ({
+      ...prevStates,
+      [index]: !prevStates[index]
+    }));
+  };
   
   const handleLogout = () => {
     dispatch(logout());
@@ -125,16 +145,20 @@ export default function DashboardSidebar({ sidebarOpen, setSidebarOpen }) {
         {/* Sidebar content */}
         <div className="flex flex-col h-[calc(100vh-4rem)] overflow-y-auto">
           <nav className="flex-1 px-2 py-4 space-y-1">
-            {menuItems.map((item) => {
-              const [submenuOpen, setSubmenuOpen] = useState(false);
-              const isActive = router.pathname === item.href || router.pathname.startsWith(`${item.href}/`);
+            {menuItems.map((item, index) => {
+              // Special case for Dashboard to prevent it from being active on all dashboard/* routes
+              const isActive = item.href === '/dashboard' 
+                ? router.pathname === '/dashboard' 
+                : router.pathname === item.href || router.pathname.startsWith(`${item.href}/`);
+              // Get submenu open state from centralized state
+              const submenuOpen = submenuStates[index];
               
               // If this menu item has a submenu
               if (item.submenu) {
                 return (
                   <div key={item.name} className="space-y-1">
                     <button
-                      onClick={() => setSubmenuOpen(!submenuOpen)}
+                      onClick={() => toggleSubmenu(index)}
                       className={cn(
                         "w-full group flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md",
                         isActive
