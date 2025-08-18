@@ -1,102 +1,94 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { vacationAPI } from '@/lib/api';
 
-// Async thunks for vacation functionality
-export const fetchVacationSummary = createAsyncThunk(
-  'vacation/fetchVacationSummary',
-  async ({ employeeId, year }, { rejectWithValue }) => {
-    try {
-      const params = year ? { year } : {};
-      const response = await vacationAPI.getVacationSummary(employeeId, params);
-      return response.data.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch vacation summary');
-    }
-  }
-);
-
-export const initializeVacation = createAsyncThunk(
-  'vacation/initializeVacation',
-  async (vacationData, { rejectWithValue }) => {
-    try {
-      const response = await vacationAPI.initializeVacation(vacationData);
-      return response.data.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to initialize vacation entitlement');
-    }
-  }
-);
-
-export const createVacationRequest = createAsyncThunk(
-  'vacation/createVacationRequest',
-  async (requestData, { rejectWithValue }) => {
-    try {
-      const response = await vacationAPI.createVacationRequest(requestData);
-      return response.data.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to create vacation request');
-    }
-  }
-);
-
-export const fetchEmployeeVacationRequests = createAsyncThunk(
-  'vacation/fetchEmployeeVacationRequests',
-  async ({ employeeId, params = {} }, { rejectWithValue }) => {
-    try {
-      const response = await vacationAPI.getEmployeeVacationRequests(employeeId, params);
-      return response.data.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch employee vacation requests');
-    }
-  }
-);
-
-export const fetchAllVacationRequests = createAsyncThunk(
-  'vacation/fetchAllVacationRequests',
+// Async thunks for vacation functionality aligned with new API structure
+export const fetchAllVacations = createAsyncThunk(
+  'vacation/fetchAllVacations',
   async (params = {}, { rejectWithValue }) => {
     try {
-      const response = await vacationAPI.getAllVacationRequests(params);
+      const response = await vacationAPI.getVacations(params);
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch all vacation requests');
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch vacation entries');
     }
   }
 );
 
-export const updateVacationRequestStatus = createAsyncThunk(
-  'vacation/updateVacationRequestStatus',
-  async ({ requestId, statusData }, { rejectWithValue }) => {
+export const fetchEmployeeVacations = createAsyncThunk(
+  'vacation/fetchEmployeeVacations',
+  async ({ employeeId, params = {} }, { rejectWithValue }) => {
     try {
-      const response = await vacationAPI.updateVacationRequestStatus(requestId, statusData);
+      const response = await vacationAPI.getEmployeeVacations(employeeId, params);
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update vacation request status');
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch employee vacation entries');
     }
   }
 );
 
-export const fetchVacationRequestDetails = createAsyncThunk(
-  'vacation/fetchVacationRequestDetails',
-  async (requestId, { rejectWithValue }) => {
+export const createVacation = createAsyncThunk(
+  'vacation/createVacation',
+  async (vacationData, { rejectWithValue }) => {
     try {
-      const response = await vacationAPI.getVacationRequestDetails(requestId);
+      const response = await vacationAPI.createVacation(vacationData);
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch vacation request details');
+      return rejectWithValue(error.response?.data?.message || 'Failed to create vacation entry');
+    }
+  }
+);
+
+export const updateVacation = createAsyncThunk(
+  'vacation/updateVacation',
+  async ({ id, vacationData }, { rejectWithValue }) => {
+    try {
+      const response = await vacationAPI.updateVacation(id, vacationData);
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update vacation entry');
+    }
+  }
+);
+
+export const deleteVacation = createAsyncThunk(
+  'vacation/deleteVacation',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await vacationAPI.deleteVacation(id);
+      return { id, message: response.data.message };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete vacation entry');
+    }
+  }
+);
+
+export const fetchVacationDetails = createAsyncThunk(
+  'vacation/fetchVacationDetails',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await vacationAPI.getVacationDetails(id);
+      return response.data.data.vacation;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch vacation details');
     }
   }
 );
 
 // Initial state
 const initialState = {
-  vacationSummary: null,
-  vacationEntitlement: null,
-  vacationRequests: [],
-  requestDetails: null,
+  vacations: [],
+  vacationDetails: null,
   pagination: {
     currentPage: 1,
     totalPages: 1,
     limit: 20,
+    count: 0,
+  },
+  filters: {
+    employee_id: '',
+    status: '',
+    start_date: '',
+    end_date: '',
   },
   loading: false,
   error: null,
@@ -114,9 +106,22 @@ const vacationSlice = createSlice({
     setLimit: (state, action) => {
       state.pagination.limit = action.payload;
     },
+    setFilters: (state, action) => {
+      state.filters = {
+        ...state.filters,
+        ...action.payload
+      };
+    },
+    resetFilters: (state) => {
+      state.filters = {
+        employee_id: '',
+        status: '',
+        start_date: '',
+        end_date: '',
+      };
+    },
     resetVacationState: (state) => {
-      state.vacationSummary = null;
-      state.requestDetails = null;
+      state.vacationDetails = null;
       state.success = false;
       state.error = null;
       state.message = '';
@@ -127,124 +132,129 @@ const vacationSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch Vacation Summary
-      .addCase(fetchVacationSummary.pending, (state) => {
+      // Fetch All Vacations
+      .addCase(fetchAllVacations.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchVacationSummary.fulfilled, (state, action) => {
+      .addCase(fetchAllVacations.fulfilled, (state, action) => {
         state.loading = false;
-        state.vacationSummary = action.payload;
+        state.vacations = action.payload.vacations;
+        state.pagination.count = action.payload.count;
+        state.pagination.totalPages = Math.ceil(action.payload.count / state.pagination.limit);
         state.success = true;
       })
-      .addCase(fetchVacationSummary.rejected, (state, action) => {
+      .addCase(fetchAllVacations.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
       
-      // Initialize Vacation
-      .addCase(initializeVacation.pending, (state) => {
+      // Fetch Employee Vacations
+      .addCase(fetchEmployeeVacations.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(initializeVacation.fulfilled, (state, action) => {
+      .addCase(fetchEmployeeVacations.fulfilled, (state, action) => {
         state.loading = false;
-        state.vacationEntitlement = action.payload;
+        state.vacations = action.payload.vacations;
+        state.pagination.count = action.payload.count;
+        state.pagination.totalPages = Math.ceil(action.payload.count / state.pagination.limit);
         state.success = true;
-        state.message = 'Vacation entitlement initialized successfully';
       })
-      .addCase(initializeVacation.rejected, (state, action) => {
+      .addCase(fetchEmployeeVacations.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
       
-      // Create Vacation Request
-      .addCase(createVacationRequest.pending, (state) => {
+      // Create Vacation
+      .addCase(createVacation.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(createVacationRequest.fulfilled, (state, action) => {
+      .addCase(createVacation.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
-        state.message = 'Vacation request created successfully';
+        state.message = 'Vacation entry created successfully';
       })
-      .addCase(createVacationRequest.rejected, (state, action) => {
+      .addCase(createVacation.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
       
-      // Fetch Employee Vacation Requests
-      .addCase(fetchEmployeeVacationRequests.pending, (state) => {
+      // Update Vacation
+      .addCase(updateVacation.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchEmployeeVacationRequests.fulfilled, (state, action) => {
-        state.loading = false;
-        state.vacationRequests = action.payload;
-        state.success = true;
-      })
-      .addCase(fetchEmployeeVacationRequests.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      
-      // Fetch All Vacation Requests
-      .addCase(fetchAllVacationRequests.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchAllVacationRequests.fulfilled, (state, action) => {
-        state.loading = false;
-        state.vacationRequests = action.payload;
-        state.success = true;
-      })
-      .addCase(fetchAllVacationRequests.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      
-      // Update Vacation Request Status
-      .addCase(updateVacationRequestStatus.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(updateVacationRequestStatus.fulfilled, (state, action) => {
+      .addCase(updateVacation.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
-        state.message = 'Vacation request status updated successfully';
-        // Update the request in the list
-        if (state.vacationRequests.length > 0) {
-          state.vacationRequests = state.vacationRequests.map(request => 
-            request.id === action.payload.id ? action.payload : request
+        state.message = 'Vacation entry updated successfully';
+        
+        // Update the vacation in the list
+        if (state.vacations.length > 0) {
+          state.vacations = state.vacations.map(vacation => 
+            vacation.id === action.payload.vacation.id ? action.payload.vacation : vacation
           );
         }
-        // Update request details if we're viewing that request
-        if (state.requestDetails && state.requestDetails.id === action.payload.id) {
-          state.requestDetails = action.payload;
+        
+        // Update vacation details if we're viewing that vacation
+        if (state.vacationDetails && state.vacationDetails.id === action.payload.vacation.id) {
+          state.vacationDetails = action.payload.vacation;
         }
       })
-      .addCase(updateVacationRequestStatus.rejected, (state, action) => {
+      .addCase(updateVacation.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
       
-      // Fetch Vacation Request Details
-      .addCase(fetchVacationRequestDetails.pending, (state) => {
+      // Delete Vacation
+      .addCase(deleteVacation.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchVacationRequestDetails.fulfilled, (state, action) => {
+      .addCase(deleteVacation.fulfilled, (state, action) => {
         state.loading = false;
-        state.requestDetails = action.payload;
+        state.success = true;
+        state.message = 'Vacation entry deleted successfully';
+        
+        // Remove the vacation from the list
+        state.vacations = state.vacations.filter(vacation => vacation.id !== action.payload.id);
+        
+        // Clear vacation details if we're viewing the deleted vacation
+        if (state.vacationDetails && state.vacationDetails.id === action.payload.id) {
+          state.vacationDetails = null;
+        }
+      })
+      .addCase(deleteVacation.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      
+      // Fetch Vacation Details
+      .addCase(fetchVacationDetails.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchVacationDetails.fulfilled, (state, action) => {
+        state.loading = false;
+        state.vacationDetails = action.payload;
         state.success = true;
       })
-      .addCase(fetchVacationRequestDetails.rejected, (state, action) => {
+      .addCase(fetchVacationDetails.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
   },
 });
 
-export const { setPage, setLimit, resetVacationState, clearError } = vacationSlice.actions;
+export const { 
+  setPage, 
+  setLimit, 
+  setFilters,
+  resetFilters,
+  resetVacationState, 
+  clearError 
+} = vacationSlice.actions;
 
 export default vacationSlice.reducer;

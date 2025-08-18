@@ -141,28 +141,25 @@ export const loansAPI = {
   getEmployeeLoans: (employeeId, params) => api.get(`/employees/${employeeId}/loans`, { params })
 };
 
-// Vacation API calls
+// Vacation API calls aligned with the new API structure
 export const vacationAPI = {
-  // Get vacation summary for a specific employee
-  getVacationSummary: (employeeId, params) => api.get(`/vacation/summary/${employeeId}`, { params }),
+  // Get all vacations with optional filters
+  getVacations: (params) => api.get('/vacations', { params }),
   
-  // Initialize or update vacation entitlement
-  initializeVacation: (vacationData) => api.post('/vacation/initialize', vacationData),
+  // Get vacations for a specific employee
+  getEmployeeVacations: (employeeId, params) => api.get(`/vacations/employee/${employeeId}`, { params }),
   
-  // Create a new vacation request
-  createVacationRequest: (requestData) => api.post('/vacation/request', requestData),
+  // Get specific vacation details
+  getVacationDetails: (id) => api.get(`/vacations/${id}`),
   
-  // Get vacation requests for a specific employee
-  getEmployeeVacationRequests: (employeeId, params) => api.get(`/vacation/requests/${employeeId}`, { params }),
+  // Create a new vacation
+  createVacation: (vacationData) => api.post('/vacations', vacationData),
   
-  // Get all vacation requests (admin)
-  getAllVacationRequests: (params) => api.get('/vacation/requests', { params }),
+  // Update an existing vacation
+  updateVacation: (id, vacationData) => api.put(`/vacations/${id}`, vacationData),
   
-  // Update vacation request status (approve/deny)
-  updateVacationRequestStatus: (requestId, statusData) => api.put(`/vacation/requests/${requestId}/status`, statusData),
-  
-  // Get details of a specific vacation request
-  getVacationRequestDetails: (requestId) => api.get(`/vacation/requests/detail/${requestId}`)
+  // Delete a vacation
+  deleteVacation: (id) => api.delete(`/vacations/${id}`)
 };
 
 // Health check

@@ -23,24 +23,32 @@ export default function AddEmployee() {
     hire_date: '',
     job_title: '',
     department: '',
+    employee_type: '',
     salary_amount: '',
     payment_frequency: 'Monthly',
-    // New fields
     hourly_rate: null,
+    standard_hours: 40,
     is_exempt_ss: false,
     is_exempt_medical: false
   });
   
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-
-    setFormData(prev => ({
-      ...prev,
+    
+    let updatedData = {
+      ...formData,
       [name]: type === 'checkbox' ? checked : 
               name === 'salary_amount' ? parseFloat(value) || '' :
               name === 'hourly_rate' ? (value === '' ? null : parseFloat(value)) :
               value
-    }));
+    };
+    
+    // If changing employee type to hourly or private_duty_nurse, set salary to 0
+    if (name === 'employee_type' && (value === 'hourly' || value === 'private_duty_nurse')) {
+      updatedData.salary_amount = 0;
+    }
+    
+    setFormData(updatedData);
   };
   
   const handleSubmit = async (e) => {
@@ -49,10 +57,47 @@ export default function AddEmployee() {
       // Clean up the data before sending
       const cleanedData = { ...formData };
       
-      // Validate employee_id (mandatory field)
+      // Validate required fields
       if (!cleanedData.employee_id || cleanedData.employee_id.trim() === '') {
         toast.error('Employee ID is required');
         return;
+      }
+      
+      if (!cleanedData.first_name || cleanedData.first_name.trim() === '') {
+        toast.error('First Name is required');
+        return;
+      }
+      
+      if (!cleanedData.last_name || cleanedData.last_name.trim() === '') {
+        toast.error('Last Name is required');
+        return;
+      }
+      
+      if (!cleanedData.employee_type) {
+        toast.error('Employee type is required');
+        return;
+      }
+      
+      // Only validate salary amount for salaried employees
+      if (cleanedData.employee_type !== 'hourly' && cleanedData.employee_type !== 'private_duty_nurse' && !cleanedData.salary_amount) {
+        toast.error('Salary amount is required for salaried employees');
+        return;
+      }
+      
+      if (!cleanedData.payment_frequency) {
+        toast.error('Payment frequency is required');
+        return;
+      }
+      
+      // Conditional validation for hourly employees and private duty nurses
+      if ((cleanedData.employee_type === 'hourly' || cleanedData.employee_type === 'private_duty_nurse') && !cleanedData.hourly_rate) {
+        toast.error('Hourly rate is required for hourly employees and private duty nurses');
+        return;
+      }
+      
+      // Ensure salary is set to 0 for hourly employees and private duty nurses
+      if (cleanedData.employee_type === 'hourly' || cleanedData.employee_type === 'private_duty_nurse') {
+        cleanedData.salary_amount = 0;
       }
       
       // Remove hourly_rate if it's null or empty (for salaried employees)
@@ -174,17 +219,17 @@ export default function AddEmployee() {
                 {/* Email */}
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                    Email Address <span className="text-red-500">*</span>
+                    Email Address
                   </label>
                   <input
                     type="email"
                     name="email"
                     id="email"
-                    required
                     value={formData.email}
                     onChange={handleChange}
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   />
+                  <p className="mt-1 text-xs text-gray-500">Optional. If provided, creates a user account with password [firstname][lastname]123</p>
                 </div>
                 
                 {/* Phone */}
@@ -323,7 +368,7 @@ export default function AddEmployee() {
                 {/* Salary Amount */}
                 <div>
                   <label htmlFor="salary_amount" className="block text-sm font-medium text-gray-700">
-                    Salary Amount <span className="text-red-500">*</span>
+                    Salary Amount {formData.employee_type !== 'hourly' && formData.employee_type !== 'private_duty_nurse' && <span className="text-red-500">*</span>}
                   </label>
                   <div className="mt-1 relative rounded-md shadow-sm">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -333,16 +378,40 @@ export default function AddEmployee() {
                       type="number"
                       name="salary_amount"
                       id="salary_amount"
-                      required
+                      required={formData.employee_type !== 'hourly' && formData.employee_type !== 'private_duty_nurse'}
+                      disabled={formData.employee_type === 'hourly' || formData.employee_type === 'private_duty_nurse'}
                       min="0"
                       step="0.01"
-                      value={formData.salary_amount}
+                      value={formData.employee_type === 'hourly' || formData.employee_type === 'private_duty_nurse' ? 0 : formData.salary_amount}
                       onChange={handleChange}
-                      className="mt-1 block w-full pl-7 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      className={`mt-1 block w-full pl-7 border ${(formData.employee_type === 'hourly' || formData.employee_type === 'private_duty_nurse') ? 'bg-gray-100 text-gray-500' : ''} border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
                     />
                   </div>
+                  {(formData.employee_type === 'hourly' || formData.employee_type === 'private_duty_nurse') && (
+                    <p className="mt-1 text-xs text-gray-500">Salary set to 0 for hourly employees and private duty nurses</p>
+                  )}
                 </div>
                 
+                {/* Employee Type */}
+                <div>
+                  <label htmlFor="employee_type" className="block text-sm font-medium text-gray-700">
+                    Employee Type <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="employee_type"
+                    name="employee_type"
+                    required
+                    value={formData.employee_type}
+                    onChange={handleChange}
+                    className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  >
+                    <option value="">Select employee type</option>
+                    <option value="salary">Salary</option>
+                    <option value="hourly">Hourly</option>
+                    <option value="private_duty_nurse">Private Duty Nurse</option>
+                  </select>
+                </div>
+
                 {/* Payment Frequency */}
                 <div>
                   <label htmlFor="payment_frequency" className="block text-sm font-medium text-gray-700">
@@ -356,15 +425,16 @@ export default function AddEmployee() {
                     onChange={handleChange}
                     className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   >
-                    <option value="Bi-Weekly">Bi-Weekly</option>
                     <option value="Monthly">Monthly</option>
+                    <option value="Bi-Weekly">Bi-Weekly</option>
+                    <option value="Semi-Monthly">Semi-Monthly</option>
                   </select>
                 </div>
                 
                 {/* Hourly Rate */}
                 <div>
                   <label htmlFor="hourly_rate" className="block text-sm font-medium text-gray-700">
-                    Hourly Rate
+                    Hourly Rate {(formData.employee_type === 'hourly' || formData.employee_type === 'private_duty_nurse') && <span className="text-red-500">*</span>}
                   </label>
                   <div className="mt-1 relative rounded-md shadow-sm">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -376,12 +446,35 @@ export default function AddEmployee() {
                       id="hourly_rate"
                       min="0"
                       step="0.01"
+                      required={formData.employee_type === 'hourly' || formData.employee_type === 'private_duty_nurse'}
                       value={formData.hourly_rate || ''}
                       onChange={handleChange}
                       className="mt-1 block w-full pl-7 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     />
                   </div>
-                  <p className="mt-1 text-xs text-gray-500">Leave blank if salaried employee</p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    {formData.employee_type === 'hourly' || formData.employee_type === 'private_duty_nurse' 
+                      ? 'Required for hourly employees and private duty nurses' 
+                      : 'Leave blank if not an hourly employee or private duty nurse'}
+                  </p>
+                </div>
+                
+                {/* Standard Hours */}
+                <div>
+                  <label htmlFor="standard_hours" className="block text-sm font-medium text-gray-700">
+                    Standard Hours Per Week
+                  </label>
+                  <input
+                    type="number"
+                    name="standard_hours"
+                    id="standard_hours"
+                    min="0"
+                    step="1"
+                    value={formData.standard_hours}
+                    onChange={handleChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Default: 40 hours per week</p>
                 </div>
                 
                 {/* Exemption Status Section */}
