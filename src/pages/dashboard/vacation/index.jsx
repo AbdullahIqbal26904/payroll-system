@@ -156,9 +156,9 @@ export default function VacationDashboard() {
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
             Initialize Vacation
           </Link>
-          <Link href="/dashboard/vacation/request" 
+          <Link href="/dashboard/vacation/initialize" 
             className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors">
-            New Request
+            New Vacation
           </Link>
         </div>
       </div>
@@ -223,11 +223,11 @@ export default function VacationDashboard() {
       {/* Filters and Table */}
       <div className="bg-white rounded-lg shadow mb-6">
         <div className="p-4 border-b border-gray-200">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+          <div className="flex flex-col gap-4">
             <h2 className="text-lg font-medium">Vacation Entries</h2>
-            <div className="flex flex-col md:flex-row gap-2 md:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
               <div className="flex items-center">
-                <label htmlFor="employee_id" className="mr-2 text-sm text-gray-600">Employee ID:</label>
+                <label htmlFor="employee_id" className="mr-2 text-sm text-gray-600 whitespace-nowrap">Employee ID:</label>
                 <input
                   id="employee_id"
                   name="employee_id"
@@ -235,17 +235,17 @@ export default function VacationDashboard() {
                   value={localFilters.employee_id}
                   onChange={handleFilterChange}
                   placeholder="Employee ID"
-                  className="border rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="border rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                 />
               </div>
               <div className="flex items-center">
-                <label htmlFor="status" className="mr-2 text-sm text-gray-600">Status:</label>
+                <label htmlFor="status" className="mr-2 text-sm text-gray-600 whitespace-nowrap">Status:</label>
                 <select
                   id="status"
                   name="status"
                   value={localFilters.status}
                   onChange={handleFilterChange}
-                  className="border rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="border rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                 >
                   <option value="">All</option>
                   <option value="pending">Pending</option>
@@ -254,27 +254,29 @@ export default function VacationDashboard() {
                 </select>
               </div>
               <div className="flex items-center">
-                <label htmlFor="start_date" className="mr-2 text-sm text-gray-600">Start Date:</label>
+                <label htmlFor="start_date" className="mr-2 text-sm text-gray-600 whitespace-nowrap">Start Date:</label>
                 <input
                   id="start_date"
                   name="start_date"
                   type="date"
                   value={localFilters.start_date}
                   onChange={handleFilterChange}
-                  className="border rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="border rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                 />
               </div>
               <div className="flex items-center">
-                <label htmlFor="end_date" className="mr-2 text-sm text-gray-600">End Date:</label>
+                <label htmlFor="end_date" className="mr-2 text-sm text-gray-600 whitespace-nowrap">End Date:</label>
                 <input
                   id="end_date"
                   name="end_date"
                   type="date"
                   value={localFilters.end_date}
                   onChange={handleFilterChange}
-                  className="border rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="border rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                 />
               </div>
+            </div>
+            <div className="flex justify-end mt-2">
               <button
                 onClick={applyFilters}
                 className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 transition-colors"

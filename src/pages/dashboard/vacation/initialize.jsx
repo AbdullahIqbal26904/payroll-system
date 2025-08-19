@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
-import { initializeVacation } from '@/redux/slices/vacationSlice';
+import { createVacation, resetVacationState } from '@/redux/slices/vacationSlice';
 import { fetchEmployees } from '@/redux/slices/employeeSlice';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { XCircleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
@@ -13,9 +13,12 @@ export default function InitializeVacation() {
   const { employees } = useSelector((state) => state.employees);
   
   const [formData, setFormData] = useState({
-    employeeId: '',
-    year: new Date().getFullYear(),
-    annualPtoHours: 80
+    employee_id: '',
+    start_date: '',
+    end_date: '',
+    total_hours: 80,
+    hourly_rate: 0,
+    status: 'approved'
   });
   
   // Fetch employees on component mount
@@ -35,24 +38,34 @@ export default function InitializeVacation() {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await dispatch(initializeVacation(formData));
+    await dispatch(createVacation(formData));
   };
   
-  // Show success message and redirect
+  // Reset form when submission is successful
   useEffect(() => {
     if (success) {
-      const timer = setTimeout(() => {
-        router.push('/dashboard/vacation');
-      }, 2000);
-      
-      return () => clearTimeout(timer);
+      setFormData({
+        employee_id: '',
+        start_date: '',
+        end_date: '',
+        total_hours: 80,
+        hourly_rate: 0,
+        status: 'approved'
+      });
     }
-  }, [success, router]);
+    
+    // Reset success state when navigating away
+    return () => {
+      if (success) {
+        dispatch(resetVacationState());
+      }
+    };
+  }, [success, dispatch]);
   
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Initialize Vacation Entitlement</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Create Vacation Entry</h1>
         <button
           onClick={() => router.back()}
           className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition-colors"
@@ -70,7 +83,7 @@ export default function InitializeVacation() {
             </div>
             <div className="ml-3">
               <p className="text-sm text-green-700">
-                Vacation entitlement initialized successfully. Redirecting...
+                Vacation entry created successfully.
               </p>
             </div>
           </div>
@@ -95,52 +108,83 @@ export default function InitializeVacation() {
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-              <label htmlFor="employeeId" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="employee_id" className="block text-sm font-medium text-gray-700 mb-1">
                 Employee *
               </label>
               <select
-                id="employeeId"
-                name="employeeId"
-                value={formData.employeeId}
+                id="employee_id"
+                name="employee_id"
+                value={formData.employee_id}
                 onChange={handleChange}
                 required
                 className="w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">Select Employee</option>
                 {employees?.map((employee) => (
-                  <option key={employee.id} value={employee.employee_id}>
-                    {employee.first_name} {employee.last_name} ({employee.employee_id})
+                  <option key={employee.id} value={employee.id}>
+                    {employee.first_name} {employee.last_name} ({employee.id})
                   </option>
                 ))}
               </select>
             </div>
             
             <div>
-              <label htmlFor="year" className="block text-sm font-medium text-gray-700 mb-1">
-                Year *
+              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+                Status *
               </label>
-              <input
-                type="number"
-                id="year"
-                name="year"
-                value={formData.year}
+              <select
+                id="status"
+                name="status"
+                value={formData.status}
                 onChange={handleChange}
                 required
-                min={new Date().getFullYear() - 1}
-                max={new Date().getFullYear() + 2}
+                className="w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="approved">Approved</option>
+                <option value="pending">Pending</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+            
+            <div>
+              <label htmlFor="start_date" className="block text-sm font-medium text-gray-700 mb-1">
+                Start Date *
+              </label>
+              <input
+                type="date"
+                id="start_date"
+                name="start_date"
+                value={formData.start_date}
+                onChange={handleChange}
+                required
                 className="w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
             
             <div>
-              <label htmlFor="annualPtoHours" className="block text-sm font-medium text-gray-700 mb-1">
-                Annual PTO Hours *
+              <label htmlFor="end_date" className="block text-sm font-medium text-gray-700 mb-1">
+                End Date *
+              </label>
+              <input
+                type="date"
+                id="end_date"
+                name="end_date"
+                value={formData.end_date}
+                onChange={handleChange}
+                required
+                className="w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="total_hours" className="block text-sm font-medium text-gray-700 mb-1">
+                Total Hours *
               </label>
               <input
                 type="number"
-                id="annualPtoHours"
-                name="annualPtoHours"
-                value={formData.annualPtoHours}
+                id="total_hours"
+                name="total_hours"
+                value={formData.total_hours}
                 onChange={handleChange}
                 required
                 min={0}
@@ -148,9 +192,22 @@ export default function InitializeVacation() {
                 step={0.01}
                 className="w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
-              <p className="mt-1 text-xs text-gray-500">
-                Accrual rate per hour: {formData.annualPtoHours > 0 ? (formData.annualPtoHours / 2080).toFixed(6) : 0}
-              </p>
+            </div>
+            
+            <div>
+              <label htmlFor="hourly_rate" className="block text-sm font-medium text-gray-700 mb-1">
+                Hourly Rate
+              </label>
+              <input
+                type="number"
+                id="hourly_rate"
+                name="hourly_rate"
+                value={formData.hourly_rate}
+                onChange={handleChange}
+                min={0}
+                step={0.01}
+                className="w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
             </div>
           </div>
           
@@ -175,7 +232,7 @@ export default function InitializeVacation() {
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
               )}
-              Initialize Vacation
+              Create Vacation Entry
             </button>
           </div>
         </form>
@@ -184,13 +241,14 @@ export default function InitializeVacation() {
       <div className="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4">
         <div className="flex">
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800">About Vacation Entitlement</h3>
+            <h3 className="text-sm font-medium text-blue-800">About Vacation Entries</h3>
             <div className="mt-2 text-sm text-blue-700">
-              <p className="mb-1">The system calculates vacation accrual based on hours worked:</p>
+              <p className="mb-1">Key information about creating vacation entries:</p>
               <ul className="list-disc pl-5 space-y-1">
-                <li>Annual PTO hours are divided by total annual work hours (2080) to find the accrual rate per hour</li>
-                <li>Employees accrue vacation time for every hour worked</li>
-                <li>Example: 80 annual PTO hours ÷ 2080 work hours = 0.038462 hours accrued per hour worked</li>
+                <li>Start and end dates define the vacation period</li>
+                <li>Total hours should reflect the work hours being taken off</li>
+                <li>Status can be set as approved, pending, or rejected</li>
+                <li>Hourly rate is optional but can be used for payroll calculations</li>
               </ul>
             </div>
           </div>

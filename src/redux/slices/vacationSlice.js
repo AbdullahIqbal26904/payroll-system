@@ -74,6 +74,18 @@ export const fetchVacationDetails = createAsyncThunk(
   }
 );
 
+export const initializeVacation = createAsyncThunk(
+  'vacation/initializeVacation',
+  async (initData, { rejectWithValue }) => {
+    try {
+      const response = await vacationAPI.initializeVacation(initData);
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to initialize vacation');
+    }
+  }
+);
+
 // Initial state
 const initialState = {
   vacations: [],
@@ -244,6 +256,23 @@ const vacationSlice = createSlice({
       .addCase(fetchVacationDetails.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      
+      // Initialize Vacation
+      .addCase(initializeVacation.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(initializeVacation.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.message = 'Vacation entitlement initialized successfully';
+      })
+      .addCase(initializeVacation.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.success = false;
       });
   },
 });

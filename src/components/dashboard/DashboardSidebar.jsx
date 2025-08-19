@@ -50,7 +50,6 @@ const menuItems = [
     submenu: [
       { name: 'Vacation Dashboard', href: '/dashboard/vacation' },
       { name: 'Initialize Vacation', href: '/dashboard/vacation/initialize' },
-      { name: 'New Request', href: '/dashboard/vacation/request' },
     ]
   },
   { 

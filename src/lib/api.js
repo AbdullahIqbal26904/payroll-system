@@ -159,7 +159,10 @@ export const vacationAPI = {
   updateVacation: (id, vacationData) => api.put(`/vacations/${id}`, vacationData),
   
   // Delete a vacation
-  deleteVacation: (id) => api.delete(`/vacations/${id}`)
+  deleteVacation: (id) => api.delete(`/vacations/${id}`),
+  
+  // Initialize vacation entitlement
+  initializeVacation: (initData) => api.post('/vacations/initialize', initData)
 };
 
 // Health check
