@@ -136,7 +136,7 @@ export default function AddLoan() {
                   >
                     <option value="">Select an employee</option>
                     {employees?.map((employee) => (
-                      <option key={employee.employee_id} value={employee.employee_id}>
+                      <option key={employee.id} value={employee.id}>
                         {employee.first_name} {employee.last_name}
                       </option>
                     ))}

@@ -134,11 +134,17 @@ export const loansAPI = {
   // Create a new loan
   createLoan: (loanData) => api.post('/loans', loanData),
   
+  // Create a new third-party loan
+  createThirdPartyLoan: (loanData) => api.post('/loans/third-party', loanData),
+  
   // Update an existing loan
   updateLoan: (id, loanData) => api.put(`/loans/${id}`, loanData),
   
   // Get all loans for a specific employee
-  getEmployeeLoans: (employeeId, params) => api.get(`/employees/${employeeId}/loans`, { params })
+  getEmployeeLoans: (employeeId, params) => api.get(`/employees/${employeeId}/loans`, { params }),
+  
+  // Get third-party payment information for a payroll run
+  getThirdPartyPayments: (payrollRunId) => api.get(`/loans/third-party-payments/${payrollRunId}`)
 };
 
 // Vacation API calls aligned with the new API structure

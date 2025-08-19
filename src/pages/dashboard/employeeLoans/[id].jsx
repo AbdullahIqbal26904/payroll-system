@@ -253,7 +253,9 @@ export default function LoanDetails() {
           ) : (
             <>
               <div className="p-6 border-b border-gray-200">
-                <h2 className="text-lg font-medium text-gray-900 mb-4">Loan Information</h2>
+                <h2 className="text-lg font-medium text-gray-900 mb-4">
+                  {loan.loan_type === 'third_party' ? 'Third-Party Loan Information' : 'Loan Information'}
+                </h2>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6">
                   <div>
@@ -271,6 +273,15 @@ export default function LoanDetails() {
                   </div>
                   
                   <div>
+                    <p className="text-sm font-medium text-gray-500">Loan Type</p>
+                    <p className="mt-1">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${loan.loan_type === 'third_party' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
+                        {loan.loan_type === 'third_party' ? 'Third-Party' : 'Internal'}
+                      </span>
+                    </p>
+                  </div>
+                  
+                  <div>
                     <p className="text-sm font-medium text-gray-500">Loan Amount</p>
                     <p className="mt-1 text-sm text-gray-900">{formatCurrency(loan.loan_amount)}</p>
                   </div>
@@ -280,10 +291,12 @@ export default function LoanDetails() {
                     <p className="mt-1 text-sm text-gray-900">{formatCurrency(loan.total_payable)}</p>
                   </div>
                   
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Interest Rate</p>
-                    <p className="mt-1 text-sm text-gray-900">{loan.interest_rate}%</p>
-                  </div>
+                  {loan.loan_type !== 'third_party' && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Interest Rate</p>
+                      <p className="mt-1 text-sm text-gray-900">{loan.interest_rate}%</p>
+                    </div>
+                  )}
                   
                   <div>
                     <p className="text-sm font-medium text-gray-500">Remaining Balance</p>
@@ -317,6 +330,35 @@ export default function LoanDetails() {
                     </div>
                   )}
                 </div>
+                
+                {/* Third-Party Information */}
+                {loan.loan_type === 'third_party' && (
+                  <div className="mt-8 pt-6 border-t border-gray-200">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Third-Party Lender Information</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6">
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Lender Name</p>
+                        <p className="mt-1 text-sm text-gray-900">{loan.third_party_name}</p>
+                      </div>
+                      
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Reference Number</p>
+                        <p className="mt-1 text-sm text-gray-900">{loan.third_party_reference || 'N/A'}</p>
+                      </div>
+                      
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Account Number</p>
+                        <p className="mt-1 text-sm text-gray-900">{loan.third_party_account_number || 'N/A'}</p>
+                      </div>
+                      
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Routing Number</p>
+                        <p className="mt-1 text-sm text-gray-900">{loan.third_party_routing_number || 'N/A'}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
               
               {/* Payment History */}
@@ -334,12 +376,16 @@ export default function LoanDetails() {
                           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Amount
                           </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Principal
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Interest
-                          </th>
+                          {loan.loan_type !== 'third_party' && (
+                            <>
+                              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Principal
+                              </th>
+                              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Interest
+                              </th>
+                            </>
+                          )}
                           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Remaining Balance
                           </th>
@@ -354,12 +400,16 @@ export default function LoanDetails() {
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                               {formatCurrency(payment.payment_amount)}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {formatCurrency(payment.principal_amount)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {formatCurrency(payment.interest_amount)}
-                            </td>
+                            {loan.loan_type !== 'third_party' && (
+                              <>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {formatCurrency(payment.principal_amount)}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {formatCurrency(payment.interest_amount)}
+                                </td>
+                              </>
+                            )}
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                               {formatCurrency(payment.remaining_balance)}
                             </td>

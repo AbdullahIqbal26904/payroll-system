@@ -59,6 +59,8 @@ const menuItems = [
     submenu: [
       { name: 'All Loans', href: '/dashboard/employeeLoans' },
       { name: 'Add Loan', href: '/dashboard/employeeLoans/add' },
+      { name: 'Add Third-Party Loan', href: '/dashboard/employeeLoans/add-third-party' },
+      { name: 'Third-Party Payments', href: '/dashboard/employeeLoans/third-party-payments' },
     ]
   },
   { name: 'Reports', href: '/dashboard/reports', icon: ChartBarIcon },

@@ -16,6 +16,7 @@ export default function EmployeeLoans() {
   const [filters, setFilters] = useState({
     employeeId: '',
     status: '',
+    loanType: '',
   });
   
   useEffect(() => {
@@ -32,6 +33,10 @@ export default function EmployeeLoans() {
     
     if (filters.status === '') {
       delete params.status;
+    }
+    
+    if (filters.loanType === '') {
+      delete params.loanType;
     }
     
     dispatch(fetchLoans(params));
@@ -62,6 +67,10 @@ export default function EmployeeLoans() {
   
   const handleAddLoan = () => {
     router.push('/dashboard/employeeLoans/add');
+  };
+  
+  const handleAddThirdPartyLoan = () => {
+    router.push('/dashboard/employeeLoans/add-third-party');
   };
   
   const handleViewLoan = (id) => {
@@ -106,24 +115,44 @@ export default function EmployeeLoans() {
               Manage loans provided to employees
             </p>
           </div>
-          <button
-            onClick={handleAddLoan}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            <svg
-              className="-ml-1 mr-2 h-5 w-5"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
+          <div className="flex space-x-2">
+            <button
+              onClick={handleAddLoan}
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              <path
-                fillRule="evenodd"
-                d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Add New Loan
-          </button>
+              <svg
+                className="-ml-1 mr-2 h-5 w-5"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Add Internal Loan
+            </button>
+            <button
+              onClick={handleAddThirdPartyLoan}
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            >
+              <svg
+                className="-ml-1 mr-2 h-5 w-5"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Add Third-Party Loan
+            </button>
+          </div>
         </div>
         
         {error && (
@@ -183,6 +212,23 @@ export default function EmployeeLoans() {
                 <option value="cancelled">Cancelled</option>
               </select>
             </div>
+            
+            <div>
+              <label htmlFor="loanType" className="block text-sm font-medium text-gray-700">
+                Loan Type
+              </label>
+              <select
+                id="loanType"
+                name="loanType"
+                value={filters.loanType}
+                onChange={handleFilterChange}
+                className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              >
+                <option value="">All Types</option>
+                <option value="internal">Internal</option>
+                <option value="third_party">Third-Party</option>
+              </select>
+            </div>
           </div>
         </div>
         
@@ -231,6 +277,9 @@ export default function EmployeeLoans() {
                       Expected End Date
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Type
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -248,13 +297,18 @@ export default function EmployeeLoans() {
                         {formatCurrency(loan.loan_amount)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {formatCurrency(loan.remaining_balance)}
+                        {formatCurrency(loan.remaining_amount)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {new Date(loan.start_date).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {new Date(loan.expected_end_date).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${loan.loan_type === 'third_party' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
+                          {loan.loan_type === 'third_party' ? 'Third-Party' : 'Internal'}
+                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(loan.status)}`}>

@@ -38,6 +38,18 @@ export const createLoan = createAsyncThunk(
   }
 );
 
+export const createThirdPartyLoan = createAsyncThunk(
+  'loans/createThirdPartyLoan',
+  async (loanData, { rejectWithValue }) => {
+    try {
+      const response = await loansAPI.createThirdPartyLoan(loanData);
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to create third-party loan');
+    }
+  }
+);
+
 export const updateLoan = createAsyncThunk(
   'loans/updateLoan',
   async ({ id, data }, { rejectWithValue }) => {
@@ -62,11 +74,24 @@ export const fetchEmployeeLoans = createAsyncThunk(
   }
 );
 
+export const fetchThirdPartyPayments = createAsyncThunk(
+  'loans/fetchThirdPartyPayments',
+  async (payrollRunId, { rejectWithValue }) => {
+    try {
+      const response = await loansAPI.getThirdPartyPayments(payrollRunId);
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch third-party payments');
+    }
+  }
+);
+
 // Initial state
 const initialState = {
   loans: [],
   loan: null,
   employeeLoans: [],
+  thirdPartyPayments: [],
   totalLoans: 0,
   pagination: {
     currentPage: 1,
@@ -77,6 +102,7 @@ const initialState = {
   error: null,
   success: false,
   message: '',
+  loanType: 'internal', // 'internal' or 'third_party'
 };
 
 const loanSlice = createSlice({
@@ -89,6 +115,9 @@ const loanSlice = createSlice({
     setLimit: (state, action) => {
       state.pagination.limit = action.payload;
     },
+    setLoanType: (state, action) => {
+      state.loanType = action.payload;
+    },
     resetLoanState: (state) => {
       state.loan = null;
       state.success = false;
@@ -97,6 +126,9 @@ const loanSlice = createSlice({
     },
     clearError: (state) => {
       state.error = null;
+    },
+    clearThirdPartyPayments: (state) => {
+      state.thirdPartyPayments = [];
     },
   },
   extraReducers: (builder) => {
@@ -188,9 +220,43 @@ const loanSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     });
+    
+    // Create third-party loan
+    builder.addCase(createThirdPartyLoan.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(createThirdPartyLoan.fulfilled, (state, action) => {
+      state.loading = false;
+      state.success = true;
+      state.message = 'Third-party loan created successfully';
+    });
+    builder.addCase(createThirdPartyLoan.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    });
+    
+    // Fetch third-party payments
+    builder.addCase(fetchThirdPartyPayments.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(fetchThirdPartyPayments.fulfilled, (state, action) => {
+      state.loading = false;
+      state.thirdPartyPayments = action.payload;
+    });
+    builder.addCase(fetchThirdPartyPayments.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    });
   },
 });
 
-export const { setPage, setLimit, resetLoanState, clearError } = loanSlice.actions;
+export const { 
+  setPage, 
+  setLimit, 
+  resetLoanState, 
+  clearError,
+  setLoanType, 
+  clearThirdPartyPayments 
+} = loanSlice.actions;
 
 export default loanSlice.reducer;
