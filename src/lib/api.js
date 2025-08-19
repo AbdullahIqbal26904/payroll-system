@@ -171,6 +171,34 @@ export const vacationAPI = {
   initializeVacation: (initData) => api.post('/vacations/initialize', initData)
 };
 
+// Holiday API calls
+export const holidaysAPI = {
+  // Get holiday settings
+  getHolidaySettings: () => api.get('/holidays/settings'),
+  
+  // Update holiday settings
+  updateHolidaySettings: (settingsData) => api.put('/holidays/settings', settingsData),
+  
+  // Get all holidays with optional filters
+  getHolidays: (params) => api.get('/holidays', { params }),
+  
+  // Get specific holiday details
+  getHoliday: (id) => api.get(`/holidays/${id}`),
+  
+  // Create a new holiday
+  createHoliday: (holidayData) => api.post('/holidays', holidayData),
+  
+  // Update an existing holiday
+  updateHoliday: (id, holidayData) => api.put(`/holidays/${id}`, holidayData),
+  
+  // Delete a holiday
+  deleteHoliday: (id) => api.delete(`/holidays/${id}`),
+  
+  // Get holidays in a specific date range
+  getHolidaysInRange: (startDate, endDate) => 
+    api.get('/holidays/range', { params: { startDate, endDate } })
+};
+
 // Health check
 export const healthCheck = () => api.get('/health');
 

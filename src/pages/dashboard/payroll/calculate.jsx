@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { calculatePayroll, fetchTimesheetPeriods, fetchTimesheetPeriodDetails } from '@/redux/slices/payrollSlice';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { formatDate } from '@/lib/utils';
+import PayrollHolidaysDisplay from '@/components/payroll/PayrollHolidaysDisplay';
 import { 
   CurrencyDollarIcon, 
   DocumentReportIcon,
@@ -312,6 +313,14 @@ export default function CalculatePayroll() {
                 <li>Education Levy (2.5% or 5% based on salary thresholds)</li>
               </ul>
             </div>
+            
+            {/* Display paid holidays in this period */}
+            {currentTimesheetPeriod && currentTimesheetPeriod.period && (
+              <PayrollHolidaysDisplay 
+                startDate={currentTimesheetPeriod.period.period_start}
+                endDate={currentTimesheetPeriod.period.period_end}
+              />
+            )}
           </div>
         )}
         

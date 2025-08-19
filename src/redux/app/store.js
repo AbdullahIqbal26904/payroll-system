@@ -5,6 +5,7 @@ import userReducer from '../slices/userSlice';
 import payrollReducer from '../slices/payrollSlice';
 import loanReducer from '../slices/loanSlice';
 import vacationReducer from '../slices/vacationSlice';
+import holidayReducer from '../slices/holidaySlice';
 
 const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ const store = configureStore({
     payroll: payrollReducer,
     loans: loanReducer,
     vacation: vacationReducer,
+    holidays: holidayReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

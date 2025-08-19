@@ -2,19 +2,22 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchEmployees } from '@/redux/slices/employeeSlice';
+import { fetchHolidays } from '@/redux/slices/holidaySlice';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { 
   UserGroupIcon, 
   CurrencyDollarIcon, 
   DocumentTextIcon, 
   ArrowUpIcon, 
-  ArrowDownIcon 
+  ArrowDownIcon,
+  CalendarIcon
 } from '@heroicons/react/24/outline';
 
 export default function Dashboard() {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { employees, totalEmployees, loading: employeesLoading } = useSelector((state) => state.employees);
+  const { holidays, settings: holidaySettings } = useSelector((state) => state.holidays);
   
   const [stats, setStats] = useState({
     totalEmployees: 0,
@@ -26,6 +29,11 @@ export default function Dashboard() {
   // Fetch employees data
   useEffect(() => {
     dispatch(fetchEmployees({ page: 1, limit: 10 }));
+    
+    // Get current year and month for upcoming holidays
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    dispatch(fetchHolidays({ year: currentYear }));
   }, [dispatch]);
   
   // Update stats when employees data changes
@@ -43,6 +51,19 @@ export default function Dashboard() {
       }));
     }
   }, [employees, totalEmployees]);
+  
+  // Get upcoming holidays (next 3 holidays from today)
+  const getUpcomingHolidays = () => {
+    if (!holidays || !Array.isArray(holidays)) return [];
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return holidays
+      .filter(holiday => new Date(holiday.date) >= today)
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .slice(0, 3);
+  };
 
   // Recent activity - in a real app, this would come from the API
   const recentActivity = [
@@ -140,48 +161,108 @@ export default function Dashboard() {
           </div>
         </div>
         
-        {/* Recent Activity */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="font-semibold text-lg text-gray-900">Recent Activity</h2>
+        {/* Upcoming Holidays and Recent Activity in a grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Upcoming Holidays */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden lg:col-span-1">
+            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="font-semibold text-lg text-gray-900">Upcoming Holidays</h2>
+              <CalendarIcon className="h-5 w-5 text-blue-500" />
+            </div>
+            <div className="p-6">
+              {holidaySettings?.paid_holidays_enabled ? (
+                <div className="space-y-4">
+                  {getUpcomingHolidays().length > 0 ? (
+                    getUpcomingHolidays().map((holiday) => (
+                      <div key={holiday.id} className="flex items-start space-x-3">
+                        <div className="flex-shrink-0 h-10 w-10 rounded-md bg-blue-100 flex items-center justify-center">
+                          <span className="text-xs font-bold text-blue-800">
+                            {new Date(holiday.date).getDate()}
+                          </span>
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-900">{holiday.name}</h4>
+                          <p className="text-xs text-gray-500">
+                            {new Date(holiday.date).toLocaleDateString(undefined, { 
+                              weekday: 'long', 
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500">No upcoming holidays</p>
+                  )}
+                  
+                  <div className="pt-4 mt-4 border-t border-gray-100">
+                    <a 
+                      href="/dashboard/payroll/holidays" 
+                      className="text-sm font-medium text-blue-600 hover:text-blue-800"
+                    >
+                      View all holidays →
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <p className="text-sm text-gray-500 mb-4">Paid holidays are not enabled</p>
+                  <a 
+                    href="/dashboard/payroll/holidays" 
+                    className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                  >
+                    Configure Holidays
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Action
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    User
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Time
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {recentActivity.map((activity) => (
-                  <tr key={activity.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {activity.action}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {activity.user}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {activity.date}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {activity.time}
-                    </td>
+
+          {/* Recent Activity */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden lg:col-span-2">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="font-semibold text-lg text-gray-900">Recent Activity</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Action
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      User
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Time
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {recentActivity.map((activity) => (
+                    <tr key={activity.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {activity.action}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {activity.user}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {activity.date}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {activity.time}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>

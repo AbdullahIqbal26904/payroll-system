@@ -40,6 +40,7 @@ const menuItems = [
       { name: 'Upload Timesheet', href: '/dashboard/payroll/upload-timesheet' },
       { name: 'Timesheet Periods', href: '/dashboard/payroll/timesheet-periods' },
       { name: 'Email Paystubs', href: '/dashboard/payroll/email-paystubs' },
+      { name: 'Paid Holidays', href: '/dashboard/payroll/holidays' },
       { name: 'Payroll Settings', href: '/dashboard/payroll/settings' },
     ]
   },

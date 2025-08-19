@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchPayrollSettings, updatePayrollSettings, resetPayrollState } from '@/redux/slices/payrollSlice';
+import { fetchHolidaySettings } from '@/redux/slices/holidaySlice';
+import HolidaySettings from '@/components/payroll/HolidaySettings';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { CheckCircleIcon } from '@heroicons/react/24/outline';
 
@@ -28,6 +30,7 @@ export default function PayrollSettings() {
   // Fetch settings on component mount
   useEffect(() => {
     dispatch(fetchPayrollSettings());
+    dispatch(fetchHolidaySettings());
     return () => {
       dispatch(resetPayrollState());
     };
@@ -386,6 +389,12 @@ export default function PayrollSettings() {
             </button>
           </div>
         </form>
+      </div>
+      
+      {/* Holiday Settings Section */}
+      <div className="mt-8">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Holiday Settings</h2>
+        <HolidaySettings />
       </div>
     </div>
   );
