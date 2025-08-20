@@ -37,7 +37,7 @@ export default function EmployeesList() {
   };
   
   const handleEdit = (id) => {
-    router.push(`/dashboard/employees/edit/${id}`);
+    router.push(`/dashboard/employees/${id}`);
   };
   
   const handleDelete = async (id) => {
