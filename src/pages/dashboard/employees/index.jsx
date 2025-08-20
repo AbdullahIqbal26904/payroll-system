@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchEmployees, deleteEmployee } from '@/redux/slices/employeeSlice';
+import { fetchDepartments } from '@/redux/slices/departmentSlice';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
@@ -11,16 +12,30 @@ export default function EmployeesList() {
   const router = useRouter();
   const dispatch = useDispatch();
   const { employees, totalEmployees, loading, error } = useSelector((state) => state.employees);
+  const { departments } = useSelector((state) => state.departments);
   
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('id');
   const [sortOrder, setSortOrder] = useState('asc');
+  const [departmentFilter, setDepartmentFilter] = useState('');
   
   useEffect(() => {
-    dispatch(fetchEmployees({ page, limit, search, sortBy, sortOrder }));
-  }, [dispatch, page, limit, search, sortBy, sortOrder]);
+    dispatch(fetchEmployees({ 
+      page, 
+      limit, 
+      search, 
+      sortBy, 
+      sortOrder,
+      department_id: departmentFilter
+    }));
+  }, [dispatch, page, limit, search, sortBy, sortOrder, departmentFilter]);
+  
+  // Fetch departments for filtering
+  useEffect(() => {
+    dispatch(fetchDepartments());
+  }, [dispatch]);
   
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
@@ -34,6 +49,14 @@ export default function EmployeesList() {
       setSortBy(field);
       setSortOrder('asc');
     }
+  };
+  
+  const clearFilters = () => {
+    setSearch('');
+    setDepartmentFilter('');
+    setSortBy('id');
+    setSortOrder('asc');
+    setPage(1);
   };
   
   const handleEdit = (id) => {
@@ -105,7 +128,35 @@ export default function EmployeesList() {
               </div>
             </div>
             
+            {/* Clear filters button - only show if filters are applied */}
+            {(search || departmentFilter || sortBy !== 'id' || sortOrder !== 'asc') && (
+              <div className="mt-2 md:mt-0">
+                <button
+                  onClick={clearFilters}
+                  className="px-3 py-1 text-sm text-blue-600 border border-blue-300 rounded hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            )}
+            
             <div className="flex flex-row gap-4">
+              <select
+                value={departmentFilter}
+                onChange={(e) => {
+                  setDepartmentFilter(e.target.value);
+                  setPage(1); // Reset to first page when filtering
+                }}
+                className="block w-full py-2 pl-3 pr-10 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              >
+                <option value="">All Departments</option>
+                {departments && departments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.name} ({dept.code})
+                  </option>
+                ))}
+              </select>
+              
               <select
                 value={limit}
                 onChange={(e) => setLimit(Number(e.target.value))}
@@ -183,9 +234,9 @@ export default function EmployeesList() {
                     <th
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                      onClick={() => handleSort('department')}
+                      onClick={() => handleSort('department_name')}
                     >
-                      Department {sortBy === 'department' && (sortOrder === 'asc' ? '↑' : '↓')}
+                      Department {sortBy === 'department_name' && (sortOrder === 'asc' ? '↑' : '↓')}
                     </th>
                     <th scope="col" className="relative px-6 py-3">
                       <span className="sr-only">Actions</span>
@@ -201,7 +252,11 @@ export default function EmployeesList() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.email}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.job_title}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.department}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {employee.department_name ? 
+                          `${employee.department_name}${employee.department_code ? ` (${employee.department_code})` : ''}` : 
+                          'N/A'}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
                           onClick={() => handleEdit(employee.id)}

@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
 import { addEmployee } from '@/redux/slices/employeeSlice';
+import { fetchDepartments } from '@/redux/slices/departmentSlice';
 import { toast } from 'react-toastify';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 
@@ -10,6 +11,12 @@ export default function AddEmployee() {
   const router = useRouter();
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.employees);
+  const { departments, loading: loadingDepartments } = useSelector((state) => state.departments);
+  
+  // Fetch departments when component mounts
+  useEffect(() => {
+    dispatch(fetchDepartments());
+  }, [dispatch]);
   
   const [formData, setFormData] = useState({
     employee_id: '',
@@ -22,7 +29,7 @@ export default function AddEmployee() {
     phone: '',
     hire_date: '',
     job_title: '',
-    department: '',
+    department_id: '',
     employee_type: '',
     salary_amount: '',
     payment_frequency: 'Monthly',
@@ -73,6 +80,11 @@ export default function AddEmployee() {
         return;
       }
       
+      if (!cleanedData.department_id) {
+        toast.error('Department is required');
+        return;
+      }
+      
       if (!cleanedData.employee_type) {
         toast.error('Employee type is required');
         return;
@@ -118,18 +130,7 @@ export default function AddEmployee() {
     }
   };
   
-  const departments = [
-    'Human Resources',
-    'IT',
-    'Finance',
-    'Marketing',
-    'Operations',
-    'Sales',
-    'Customer Support',
-    'Research & Development',
-    'Legal',
-    'Executive'
-  ];
+  // Departments are now fetched from the API
   
   return (
     <>
@@ -325,20 +326,21 @@ export default function AddEmployee() {
                 
                 {/* Department */}
                 <div>
-                  <label htmlFor="department" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="department_id" className="block text-sm font-medium text-gray-700">
                     Department <span className="text-red-500">*</span>
                   </label>
                   <select
-                    id="department"
-                    name="department"
+                    id="department_id"
+                    name="department_id"
                     required
-                    value={formData.department}
+                    value={formData.department_id}
                     onChange={handleChange}
-                    className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    disabled={loadingDepartments}
+                    className={`mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${loadingDepartments ? 'cursor-wait' : ''}`}
                   >
-                    <option value="">Select department</option>
-                    {departments.map((dept) => (
-                      <option key={dept} value={dept}>{dept}</option>
+                    <option value="">{loadingDepartments ? 'Loading departments...' : 'Select department'}</option>
+                    {!loadingDepartments && departments && departments.length > 0 && departments.map((dept) => (
+                      <option key={dept.id} value={dept.id}>{dept.name} ({dept.code})</option>
                     ))}
                   </select>
                 </div>
