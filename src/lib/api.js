@@ -199,6 +199,24 @@ export const holidaysAPI = {
     api.get('/holidays/range', { params: { startDate, endDate } })
 };
 
+// Department API calls
+export const departmentsAPI = {
+  // Get all departments
+  getAllDepartments: () => api.get('/departments'),
+  
+  // Get department by ID
+  getDepartment: (id) => api.get(`/departments/${id}`),
+  
+  // Create a new department
+  createDepartment: (departmentData) => api.post('/departments', departmentData),
+  
+  // Update an existing department
+  updateDepartment: (id, departmentData) => api.put(`/departments/${id}`, departmentData),
+  
+  // Delete a department
+  deleteDepartment: (id) => api.delete(`/departments/${id}`)
+};
+
 // Health check
 export const healthCheck = () => api.get('/health');
 

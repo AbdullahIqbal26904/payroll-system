@@ -30,9 +30,17 @@ export const addEmployee = createAsyncThunk(
   'employees/addEmployee',
   async (employeeData, { rejectWithValue }) => {
     try {
+      // Ensure department_id is included in the request
+      if (!employeeData.department_id) {
+        return rejectWithValue('Department ID is required');
+      }
       const response = await employeesAPI.addEmployee(employeeData);
       return response.data.data;
     } catch (error) {
+      // Handle validation errors
+      if (error.response?.data?.errors) {
+        return rejectWithValue({ validationErrors: error.response.data.errors });
+      }
       return rejectWithValue(error.response?.data?.message || 'Failed to add employee');
     }
   }
@@ -42,9 +50,17 @@ export const updateEmployee = createAsyncThunk(
   'employees/updateEmployee',
   async ({ id, data }, { rejectWithValue }) => {
     try {
+      // Ensure department_id is included in the request
+      if (!data.department_id) {
+        return rejectWithValue('Department ID is required');
+      }
       const response = await employeesAPI.updateEmployee(id, data);
       return response.data.data;
     } catch (error) {
+      // Handle validation errors
+      if (error.response?.data?.errors) {
+        return rejectWithValue({ validationErrors: error.response.data.errors });
+      }
       return rejectWithValue(error.response?.data?.message || 'Failed to update employee');
     }
   }
@@ -74,6 +90,7 @@ const initialState = {
   },
   loading: false,
   error: null,
+  validationErrors: null,
   success: false,
   message: '',
 };
@@ -92,10 +109,12 @@ const employeeSlice = createSlice({
       state.employee = null;
       state.success = false;
       state.error = null;
+      state.validationErrors = null;
       state.message = '';
     },
     clearError: (state) => {
       state.error = null;
+      state.validationErrors = null;
     },
   },
   extraReducers: (builder) => {
@@ -134,6 +153,8 @@ const employeeSlice = createSlice({
     // Add employee
     builder.addCase(addEmployee.pending, (state) => {
       state.loading = true;
+      state.error = null;
+      state.validationErrors = null;
     });
     builder.addCase(addEmployee.fulfilled, (state, action) => {
       state.loading = false;
@@ -142,12 +163,18 @@ const employeeSlice = createSlice({
     });
     builder.addCase(addEmployee.rejected, (state, action) => {
       state.loading = false;
-      state.error = action.payload;
+      if (action.payload?.validationErrors) {
+        state.validationErrors = action.payload.validationErrors;
+      } else {
+        state.error = action.payload;
+      }
     });
     
     // Update employee
     builder.addCase(updateEmployee.pending, (state) => {
       state.loading = true;
+      state.error = null;
+      state.validationErrors = null;
     });
     builder.addCase(updateEmployee.fulfilled, (state, action) => {
       state.loading = false;
@@ -162,7 +189,11 @@ const employeeSlice = createSlice({
     });
     builder.addCase(updateEmployee.rejected, (state, action) => {
       state.loading = false;
-      state.error = action.payload;
+      if (action.payload?.validationErrors) {
+        state.validationErrors = action.payload.validationErrors;
+      } else {
+        state.error = action.payload;
+      }
     });
     
     // Delete employee

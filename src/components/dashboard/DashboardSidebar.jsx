@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '@/redux/slices/authSlice';
 import { cn } from '@/lib/utils';
+import BuildingIcon from './BuildingIcon';
 import {
   HomeIcon,
   UsersIcon,
@@ -29,6 +30,11 @@ const menuItems = [
       { name: 'All Employees', href: '/dashboard/employees' },
       { name: 'Add Employee', href: '/dashboard/employees/add' },
     ]
+  },
+  { 
+    name: 'Departments', 
+    href: '/dashboard/departments', 
+    icon: BuildingIcon 
   },
   { 
     name: 'Payroll', 
