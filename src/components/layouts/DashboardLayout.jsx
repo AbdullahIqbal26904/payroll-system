@@ -6,7 +6,23 @@ import DashboardNavbar from '@/components/dashboard/DashboardNavbar';
 import DashboardFooter from '@/components/dashboard/DashboardFooter';
 
 export default function DashboardLayout({ children }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Use localStorage to persist sidebar state across page navigations
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    // Check if we're on the client side before accessing localStorage
+    if (typeof window !== 'undefined') {
+      const savedState = localStorage.getItem('sidebarOpen');
+      return savedState !== null ? JSON.parse(savedState) : true; // Default to open
+    }
+    return true; // Default state when rendering on server
+  });
+  
+  // Update localStorage whenever sidebar state changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen));
+    }
+  }, [sidebarOpen]);
+  
   const { user, isAuthenticated, loading } = useSelector((state) => state.auth);
   const router = useRouter();
   
@@ -28,7 +44,7 @@ export default function DashboardLayout({ children }) {
       <DashboardSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
       
       {/* Main content area */}
-      <div className="lg:pl-64 flex flex-col flex-1">
+      <div className={`flex flex-col flex-1 transition-all duration-300 ${sidebarOpen ? 'lg:pl-64' : 'lg:pl-0'}`}>
         {/* Navbar */}
         <DashboardNavbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
         

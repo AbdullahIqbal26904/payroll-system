@@ -128,7 +128,7 @@ export default function DashboardSidebar({ sidebarOpen, setSidebarOpen }) {
       {/* Sidebar */}
       <aside 
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 shadow-sm transform transition-transform duration-300 ease-in-out lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 shadow-sm transform transition-transform duration-300 ease-in-out",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -142,9 +142,11 @@ export default function DashboardSidebar({ sidebarOpen, setSidebarOpen }) {
             </div>
             <div className="text-lg font-semibold text-gray-900">Payroll</div>
           </Link>
+          {/* Toggle button that appears on both mobile and desktop */}
           <button 
-            className="lg:hidden p-1 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+            className="p-1 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100"
             onClick={() => setSidebarOpen(false)}
+            aria-label="Close sidebar"
           >
             <ChevronLeftIcon className="h-5 w-5" />
           </button>
@@ -200,6 +202,12 @@ export default function DashboardSidebar({ sidebarOpen, setSidebarOpen }) {
                             <Link
                               key={subitem.name}
                               href={subitem.href}
+                              // Don't close sidebar when submenu link is clicked
+                              onClick={(e) => {
+                                // Stop propagation to prevent parent click handlers
+                                e.stopPropagation();
+                                // Don't close the sidebar
+                              }}
                               className={cn(
                                 "group flex items-center px-3 py-2 text-sm font-medium rounded-md",
                                 isSubActive
@@ -222,6 +230,12 @@ export default function DashboardSidebar({ sidebarOpen, setSidebarOpen }) {
                 <Link
                   key={item.name}
                   href={item.href}
+                  // Don't close sidebar when link is clicked
+                  onClick={(e) => {
+                    // Stop propagation to prevent parent click handlers
+                    e.stopPropagation();
+                    // Don't close the sidebar
+                  }}
                   className={cn(
                     "group flex items-center px-3 py-2 text-sm font-medium rounded-md",
                     isActive 
@@ -245,6 +259,11 @@ export default function DashboardSidebar({ sidebarOpen, setSidebarOpen }) {
           <div className="p-4 border-t border-gray-200 space-y-2">
             <Link 
               href="/dashboard/account-settings" 
+              onClick={(e) => {
+                // Stop propagation to prevent parent click handlers
+                e.stopPropagation();
+                // Don't close the sidebar
+              }}
               className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-50 hover:text-blue-700"
             >
               <UserIcon className="mr-3 h-5 w-5 text-gray-500" />
@@ -262,11 +281,11 @@ export default function DashboardSidebar({ sidebarOpen, setSidebarOpen }) {
         </div>
       </aside>
       
-      {/* Sidebar toggle button (visible on mobile) */}
+      {/* Sidebar toggle button (visible when sidebar is closed) */}
       {!sidebarOpen && (
         <button
           onClick={() => setSidebarOpen(true)}
-          className="fixed z-40 bottom-4 left-4 p-2 rounded-full bg-blue-600 text-white shadow-lg lg:hidden"
+          className="fixed z-40 bottom-4 left-4 p-2 rounded-full bg-blue-600 text-white shadow-lg"
         >
           <ChevronRightIcon className="h-6 w-6" />
         </button>

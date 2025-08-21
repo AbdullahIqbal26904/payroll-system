@@ -116,7 +116,13 @@ export const payrollAPI = {
   // Paystub endpoints
   downloadPaystub: (payrollRunId, employeeId) => api.get(`/payroll/paystub/${payrollRunId}/${employeeId}`, { responseType: 'blob' }),
   viewPaystub: (payrollRunId, employeeId) => api.get(`/payroll/paystub/${payrollRunId}/${employeeId}?view=detailed`, { responseType: 'blob' }),
+  
+  // Paystub email endpoints
   emailPaystubs: (data) => api.post('/payroll/email-paystubs', data),
+  emailSinglePaystub: (payrollRunId, employeeId) => api.post(`/payroll/email-paystub/${payrollRunId}/${employeeId}`),
+  
+  // Retry failed email
+  retryFailedEmail: (emailId) => api.post(`/payroll/email-paystub/retry/${emailId}`),
   
   // Settings endpoints
   getPayrollSettings: () => api.get('/payroll/settings'),

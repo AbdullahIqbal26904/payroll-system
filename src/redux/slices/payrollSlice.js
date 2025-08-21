@@ -72,14 +72,18 @@ export const fetchPayrollReportDetails = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await payrollAPI.getPayrollReport(id);
+      console.log("Payroll report details response:", response.data);
+      
+      // Just return the data directly - we already have employees in the response
       return response.data.data;
     } catch (error) {
+      console.error("Error fetching payroll report details:", error);
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch payroll report details');
     }
   }
 );
 
-// Email paystubs to employees
+// Email paystubs to multiple employees
 export const emailPaystubs = createAsyncThunk(
   'payroll/emailPaystubs',
   async (emailData, { rejectWithValue }) => {
@@ -88,6 +92,19 @@ export const emailPaystubs = createAsyncThunk(
       return response.data.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to email paystubs');
+    }
+  }
+);
+
+// Email paystub to a single employee
+export const emailSinglePaystub = createAsyncThunk(
+  'payroll/emailSinglePaystub',
+  async ({ payrollRunId, employeeId }, { rejectWithValue }) => {
+    try {
+      const response = await payrollAPI.emailSinglePaystub(payrollRunId, employeeId);
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to email paystub');
     }
   }
 );
@@ -129,6 +146,7 @@ const initialState = {
   error: null,
   success: false,
   message: '',
+  emailStats: null, // To store email sending statistics
 };
 
 const payrollSlice = createSlice({
@@ -231,19 +249,40 @@ const payrollSlice = createSlice({
       state.error = action.payload;
     });
 
-    // Email Paystubs
+    // Email Multiple Paystubs
     builder.addCase(emailPaystubs.pending, (state) => {
       state.loading = true;
       state.error = null;
+      state.success = false;
+      state.emailStats = null;
     });
     builder.addCase(emailPaystubs.fulfilled, (state, action) => {
       state.loading = false;
       state.success = true;
-      state.message = 'Paystubs emailed successfully';
+      state.emailStats = action.payload;
+      state.message = `Paystubs emailed successfully (${action.payload?.sentCount || 0}/${action.payload?.totalCount || 0})`;
     });
     builder.addCase(emailPaystubs.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload;
+      state.success = false;
+    });
+    
+    // Email Single Paystub
+    builder.addCase(emailSinglePaystub.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+      state.success = false;
+    });
+    builder.addCase(emailSinglePaystub.fulfilled, (state, action) => {
+      state.loading = false;
+      state.success = true;
+      state.message = 'Paystub emailed successfully';
+    });
+    builder.addCase(emailSinglePaystub.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+      state.success = false;
     });
 
     // Fetch Payroll Settings

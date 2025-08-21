@@ -88,18 +88,18 @@ export default function EmployeesList() {
         <meta name="description" content="Manage employees in your payroll system" />
       </Head>
       
-      <div className="py-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+      <div className="py-4 md:py-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Employees</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Employees</h1>
             <p className="mt-1 text-sm text-gray-500">
               Manage your employees and their information
             </p>
           </div>
-          <div className="mt-4 md:mt-0">
+          <div className="flex justify-start sm:justify-end">
             <button
               onClick={handleAddEmployee}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               Add Employee
             </button>
@@ -108,8 +108,8 @@ export default function EmployeesList() {
         
         {/* Search and filters */}
         <div className="bg-white shadow-sm rounded-lg mb-6 p-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="w-full md:w-64">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="w-full lg:w-64">
               <label htmlFor="search" className="sr-only">Search</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -128,19 +128,7 @@ export default function EmployeesList() {
               </div>
             </div>
             
-            {/* Clear filters button - only show if filters are applied */}
-            {(search || departmentFilter || sortBy !== 'id' || sortOrder !== 'asc') && (
-              <div className="mt-2 md:mt-0">
-                <button
-                  onClick={clearFilters}
-                  className="px-3 py-1 text-sm text-blue-600 border border-blue-300 rounded hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  Clear Filters
-                </button>
-              </div>
-            )}
-            
-            <div className="flex flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
               <select
                 value={departmentFilter}
                 onChange={(e) => {
@@ -160,7 +148,7 @@ export default function EmployeesList() {
               <select
                 value={limit}
                 onChange={(e) => setLimit(Number(e.target.value))}
-                className="block w-full py-2 pl-3 pr-10 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="block w-full sm:w-40 py-2 pl-3 pr-10 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               >
                 <option value={5}>5 per page</option>
                 <option value={10}>10 per page</option>
@@ -168,6 +156,18 @@ export default function EmployeesList() {
                 <option value={50}>50 per page</option>
               </select>
             </div>
+            
+            {/* Clear filters button - only show if filters are applied */}
+            {(search || departmentFilter || sortBy !== 'id' || sortOrder !== 'asc') && (
+              <div className="flex justify-center sm:justify-start lg:justify-end">
+                <button
+                  onClick={clearFilters}
+                  className="px-4 py-2 text-sm text-blue-600 border border-blue-300 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            )}
           </div>
         </div>
         
@@ -199,46 +199,46 @@ export default function EmployeesList() {
               </div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+            <div className="overflow-x-auto w-full">
+              <table className="min-w-full divide-y divide-gray-200 table-fixed md:table-auto">
                 <thead className="bg-gray-50">
                   <tr>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                      className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-[50px] md:w-auto"
                       onClick={() => handleSort('id')}
                     >
                       ID {sortBy === 'id' && (sortOrder === 'asc' ? '↑' : '↓')}
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                      className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                       onClick={() => handleSort('first_name')}
                     >
                       Name {sortBy === 'first_name' && (sortOrder === 'asc' ? '↑' : '↓')}
                     </th>
                     <th
                       scope="col" 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                      className="hidden md:table-cell px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                       onClick={() => handleSort('email')}
                     >
                       Email {sortBy === 'email' && (sortOrder === 'asc' ? '↑' : '↓')}
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                      className="hidden md:table-cell px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                       onClick={() => handleSort('job_title')}
                     >
                       Job Title {sortBy === 'job_title' && (sortOrder === 'asc' ? '↑' : '↓')}
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                      className="hidden md:table-cell px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                       onClick={() => handleSort('department_name')}
                     >
                       Department {sortBy === 'department_name' && (sortOrder === 'asc' ? '↑' : '↓')}
                     </th>
-                    <th scope="col" className="relative px-6 py-3">
+                    <th scope="col" className="relative px-3 md:px-6 py-3">
                       <span className="sr-only">Actions</span>
                     </th>
                   </tr>
@@ -246,30 +246,30 @@ export default function EmployeesList() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {employees?.map((employee,index) => (
                     <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{employee.id}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-3 md:px-6 py-2 md:py-4 whitespace-nowrap text-sm font-medium text-gray-900">{employee.id}</td>
+                      <td className="px-3 md:px-6 py-2 md:py-4 whitespace-nowrap text-sm text-gray-500">
                         {employee.first_name} {employee.last_name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.email}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.job_title}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="hidden md:table-cell px-3 md:px-6 py-2 md:py-4 whitespace-nowrap text-sm text-gray-500">{employee.email}</td>
+                      <td className="hidden md:table-cell px-3 md:px-6 py-2 md:py-4 whitespace-nowrap text-sm text-gray-500">{employee.job_title}</td>
+                      <td className="hidden md:table-cell px-3 md:px-6 py-2 md:py-4 whitespace-nowrap text-sm text-gray-500">
                         {employee.department_name ? 
                           `${employee.department_name}${employee.department_code ? ` (${employee.department_code})` : ''}` : 
                           'N/A'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-3 md:px-6 py-2 md:py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
                           onClick={() => handleEdit(employee.id)}
-                          className="text-blue-600 hover:text-blue-900 mr-4"
+                          className="text-blue-600 hover:text-blue-900 mr-2 md:mr-4"
                         >
-                          <PencilIcon className="h-5 w-5" />
+                          <PencilIcon className="h-4 w-4 md:h-5 md:w-5" />
                           <span className="sr-only">Edit</span>
                         </button>
                         <button
                           onClick={() => handleDelete(employee.id)}
                           className="text-red-600 hover:text-red-900"
                         >
-                          <TrashIcon className="h-5 w-5" />
+                          <TrashIcon className="h-4 w-4 md:h-5 md:w-5" />
                           <span className="sr-only">Delete</span>
                         </button>
                       </td>
@@ -283,9 +283,9 @@ export default function EmployeesList() {
           {/* Pagination */}
           {!loading && employees?.length > 0 && (
             <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm text-gray-700">
+              <div className="flex flex-col sm:flex-row items-center justify-between w-full gap-3">
+                <div className="text-center sm:text-left">
+                  <p className="text-xs sm:text-sm text-gray-700">
                     Showing <span className="font-medium">{((page - 1) * limit) + 1}</span> to{' '}
                     <span className="font-medium">
                       {Math.min(page * limit, totalEmployees || 0)}
@@ -311,7 +311,7 @@ export default function EmployeesList() {
                     </button>
                     
                     {/* Page numbers would go here in a more complete implementation */}
-                    <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium">
+                    <span className="relative inline-flex items-center px-3 sm:px-4 py-2 border border-gray-300 bg-white text-sm font-medium">
                       Page {page}
                     </span>
                     

@@ -1,7 +1,7 @@
 import { payrollAPI } from '@/lib/api';
 
 /**
- * API handler for emailing paystubs
+ * API handler for emailing a single paystub
  * This routes through the Next.js API to handle the email sending process
  */
 export default async function handler(req, res) {
@@ -11,35 +11,29 @@ export default async function handler(req, res) {
 
   try {
     // Extract parameters from request body
-    const { payrollRunId, sendToAll, employeeIds } = req.body;
+    const { payrollRunId, employeeId } = req.body;
     
-    if (!payrollRunId) {
+    if (!payrollRunId || !employeeId) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Payroll run ID is required' 
+        message: 'Both payrollRunId and employeeId are required' 
       });
     }
 
-    const data = {
-      payrollRunId,
-      sendToAll: sendToAll || false,
-      employeeIds: sendToAll ? [] : (employeeIds || [])
-    };
+    // Use the API utility to email the single paystub
+    const response = await payrollAPI.emailSinglePaystub(payrollRunId, employeeId);
     
-    // Use the API utility to email paystubs
-    const response = await payrollAPI.emailPaystubs(data);
-    
-    // Return the response from the backend with proper formatting
+    // Return the response from the backend
     return res.status(200).json({
       success: true,
-      message: 'Paystubs emailed successfully',
+      message: 'Paystub emailed successfully',
       data: response.data
     });
   } catch (error) {
-    console.error('Error sending paystub emails:', error);
+    console.error('Error sending paystub email:', error);
     
     // Extract error information from the API response
-    const errorMessage = error.response?.data?.message || 'Failed to email paystubs';
+    const errorMessage = error.response?.data?.message || 'Failed to email paystub';
     const statusCode = error.response?.status || 500;
     
     return res.status(statusCode).json({
