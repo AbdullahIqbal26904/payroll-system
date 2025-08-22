@@ -199,16 +199,16 @@ export default function DashboardNavbar({ sidebarOpen, setSidebarOpen }) {
               
               <div className="py-1">
                 <Link
-                  href="/dashboard/profile"
+                  href="/dashboard/account-settings?tab=profile"
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 >
                   Your Profile
                 </Link>
                 <Link
-                  href="/dashboard/settings"
+                  href="/dashboard/account-settings?tab=security"
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 >
-                  Settings
+                  Security
                 </Link>
                 <button
                   onClick={() => {

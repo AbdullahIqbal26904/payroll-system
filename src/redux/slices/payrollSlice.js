@@ -147,6 +147,7 @@ const initialState = {
   success: false,
   message: '',
   emailStats: null, // To store email sending statistics
+  _lastToastId: null, // Internal tracking to prevent duplicate toasts
 };
 
 const payrollSlice = createSlice({
@@ -157,6 +158,8 @@ const payrollSlice = createSlice({
       state.success = false;
       state.error = null;
       state.message = '';
+      // Generate a new toast ID to help with duplicate detection
+      state._lastToastId = Date.now().toString();
     },
     clearError: (state) => {
       state.error = null;

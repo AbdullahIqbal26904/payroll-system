@@ -47,7 +47,7 @@ export default function AddThirdPartyLoan() {
     if (!formData.loan_amount || formData.loan_amount <= 0) errors.loan_amount = 'Valid loan amount is required';
     if (!formData.installment_amount || formData.installment_amount <= 0) errors.installment_amount = 'Valid installment amount is required';
     if (!formData.start_date) errors.start_date = 'Start date is required';
-    if (!formData.expected_end_date) errors.expected_end_date = 'Expected end date is required';
+    // if (!formData.expected_end_date) errors.expected_end_date = 'Expected end date is required';
     if (new Date(formData.expected_end_date) <= new Date(formData.start_date)) {
       errors.expected_end_date = 'End date must be after start date';
     }

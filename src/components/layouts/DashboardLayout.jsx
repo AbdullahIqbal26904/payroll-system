@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import DashboardNavbar from '@/components/dashboard/DashboardNavbar';
 import DashboardFooter from '@/components/dashboard/DashboardFooter';
+import PayrollStateMonitor from '@/components/payroll/PayrollStateMonitor';
 
 export default function DashboardLayout({ children }) {
   // Use localStorage to persist sidebar state across page navigations
@@ -42,6 +43,9 @@ export default function DashboardLayout({ children }) {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Sidebar */}
       <DashboardSidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+      
+      {/* Toast notification handler for payroll state */}
+      <PayrollStateMonitor />
       
       {/* Main content area */}
       <div className={`flex flex-col flex-1 transition-all duration-300 ${sidebarOpen ? 'lg:pl-64' : 'lg:pl-0'}`}>
